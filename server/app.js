@@ -516,7 +516,14 @@ app.post('/api/campaigns', authRequired, async (req, res) => {
     return;
   }
 
-  const validRecipients = recipients.filter((r) => r && r.email);
+  // Handle both string emails and recipient objects
+  const validRecipients = recipients.map((r) => {
+    if (typeof r === 'string') {
+      return { email: r };
+    }
+    return r;
+  }).filter((r) => r && r.email);
+  
   const scheduleIso = safeIsoDate(scheduledFor) || new Date().toISOString();
   const id = crypto.randomUUID();
   const campaign = {
