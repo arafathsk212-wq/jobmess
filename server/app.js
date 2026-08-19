@@ -146,11 +146,11 @@ async function runCampaign(campaignId) {
     level: 'info',
     message: transportDetails.isEthereal
       ? 'Using an Ethereal preview inbox because SMTP credentials are not configured.'
-      : 'SMTP connection ready. Starting sends.',
+      : `SMTP connection ready. Host: ${config.smtp.host}, Port: ${config.smtp.port}, User: ${config.smtp.user}`,
   });
   broadcast('campaign:log', {
     id: campaignId,
-    entry: { level: 'info', message: transportDetails.isEthereal ? 'Using an Ethereal preview inbox.' : 'SMTP ready.', timestamp: new Date().toISOString() },
+    entry: { level: 'info', message: transportDetails.isEthereal ? 'Using an Ethereal preview inbox.' : `SMTP ready. Host: ${config.smtp.host}`, timestamp: new Date().toISOString() },
   });
 
   let sentCount = 0;

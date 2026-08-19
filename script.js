@@ -641,14 +641,24 @@ async function pollCampaignProgress(campaignId, totalEmails) {
         // Get send status
         const sendsData = await requestJson(`/api/campaigns/${campaignId}/sends`);
         const sentCount = sendsData.sends.filter(s => s.status === 'sent').length;
+        const failedCount = sendsData.sends.filter(s => s.status === 'failed').length;
         
         const progress = Math.round((sentCount / totalEmails) * 100);
         elements.emailProgressBar.style.width = `${progress}%`;
-        elements.emailProgressText.textContent = `${sentCount} / ${totalEmails} emails sent`;
+        elements.emailProgressText.textContent = `${sentCount} / ${totalEmails} emails sent (${failedCount} failed)`;
         
         if (campaign.status === 'completed' || sentCount >= totalEmails) {
           clearInterval(pollInterval);
-          showToast('All emails sent successfully!');
+          if (failedCount > 0) {
+            showToast(`Campaign completed. ${sentCount} sent, ${failedCount} failed.`);
+          } else {
+            showToast('All emails sent successfully!');
+          }
+        }
+        
+        if (campaign.status === 'failed') {
+          clearInterval(pollInterval);
+          showToast('Campaign failed. Check logs for details.', true);
         }
       } catch (error) {
         console.error('Error polling campaign progress:', error);
