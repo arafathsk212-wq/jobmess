@@ -602,7 +602,7 @@ async function sendBulkEmails() {
   
   try {
     elements.emailProgress.classList.remove('hidden');
-    showToast('Sending bulk emails...');
+    showToast('Creating email campaign and starting to send...');
     
     // Extract email addresses from recipient objects
     const emailAddresses = state.validEmails.map(r => r.email || r);
@@ -619,26 +619,47 @@ async function sendBulkEmails() {
       }),
     });
     
-    // Simulate progress
-    let progress = 0;
-    const totalEmails = emailAddresses.length;
+    showToast('Campaign created! Email sending has started in the background.');
     
-    const interval = setInterval(() => {
-      progress += Math.ceil(100 / totalEmails);
-      if (progress > 100) progress = 100;
-      
-      elements.emailProgressBar.style.width = `${progress}%`;
-      elements.emailProgressText.textContent = `${Math.min(progress, totalEmails)} / ${totalEmails} emails sent`;
-      
-      if (progress >= 100) {
-        clearInterval(interval);
-        showToast('All emails sent successfully!');
-      }
-    }, 500);
+    // Start polling for campaign progress
+    const campaignId = response.campaign.id;
+    pollCampaignProgress(campaignId, emailAddresses.length);
     
   } catch (error) {
     showToast(error.message, true);
     elements.emailProgress.classList.add('hidden');
+  }
+}
+
+async function pollCampaignProgress(campaignId, totalEmails) {
+  try {
+    const pollInterval = setInterval(async () => {
+      try {
+        const data = await requestJson(`/api/campaigns/${campaignId}`);
+        const campaign = data.campaign;
+        
+        // Get send status
+        const sendsData = await requestJson(`/api/campaigns/${campaignId}/sends`);
+        const sentCount = sendsData.sends.filter(s => s.status === 'sent').length;
+        
+        const progress = Math.round((sentCount / totalEmails) * 100);
+        elements.emailProgressBar.style.width = `${progress}%`;
+        elements.emailProgressText.textContent = `${sentCount} / ${totalEmails} emails sent`;
+        
+        if (campaign.status === 'completed' || sentCount >= totalEmails) {
+          clearInterval(pollInterval);
+          showToast('All emails sent successfully!');
+        }
+      } catch (error) {
+        console.error('Error polling campaign progress:', error);
+      }
+    }, 2000);
+    
+    // Stop polling after 5 minutes
+    setTimeout(() => clearInterval(pollInterval), 300000);
+    
+  } catch (error) {
+    showToast('Error tracking campaign progress', true);
   }
 }
 

@@ -504,6 +504,16 @@ app.get('/api/campaigns/:id', authRequired, async (req, res) => {
   res.json({ campaign, sends });
 });
 
+app.get('/api/campaigns/:id/sends', authRequired, async (req, res) => {
+  const campaign = repos.getCampaignById(req.params.id, req.user.id);
+  if (!campaign) {
+    res.status(404).json({ error: 'Campaign not found.' });
+    return;
+  }
+  const sends = repos.listCampaignSends(req.params.id);
+  res.json({ sends });
+});
+
 app.post('/api/campaigns', authRequired, async (req, res) => {
   const { name, senderEmail, subject, body, bodyType = 'text', recipients, scheduledFor, delayMs } = req.body;
 
