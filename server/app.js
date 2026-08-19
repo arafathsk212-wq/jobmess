@@ -165,6 +165,7 @@ async function runCampaign(campaignId) {
     if (activeCampaign?.status === 'cancelled') break;
 
     try {
+      console.log(`Attempting to send email to ${recipient.email}...`);
       const result = await sendMail({
         transporter: transportDetails.transporter,
         from: config.smtp.from || config.smtp.user || activeCampaign.senderEmail,
@@ -178,6 +179,7 @@ async function runCampaign(campaignId) {
         enableTracking: true,
       });
 
+      console.log(`Successfully sent email to ${recipient.email}. Message ID: ${result.messageId}`);
       sentCount += 1;
       repos.updateCampaignStatus(campaignId, { sentCount });
       repos.updateSend(campaignId, recipient.email, {
@@ -190,7 +192,7 @@ async function runCampaign(campaignId) {
         level: 'success',
         message: result.previewUrl
           ? `Sent to ${recipient.email}. Preview: ${result.previewUrl}`
-          : `Sent to ${recipient.email}.`,
+          : `Sent to ${recipient.email}. Message ID: ${result.messageId}`,
       });
       broadcast('campaign:progress', {
         id: campaignId,
@@ -200,6 +202,7 @@ async function runCampaign(campaignId) {
         total: activeCampaign.recipients.length,
       });
     } catch (error) {
+      console.error(`Failed to send email to ${recipient.email}:`, error);
       failedCount += 1;
       repos.updateCampaignStatus(campaignId, { failedCount });
       repos.updateSend(campaignId, recipient.email, {
