@@ -15,6 +15,9 @@ COPY . .
 # Create data directory
 RUN mkdir -p server/data
 
+# Install dotenv to load environment variables
+RUN npm install dotenv
+
 EXPOSE 3000
 
 CMD ["npm", "start"]

@@ -1,7 +1,11 @@
 const path = require('path');
 const dotenv = require('dotenv');
 
+// Load from .env file if it exists (for local development)
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+
+// Railway injects environment variables directly into process.env
+// No additional configuration needed for Railway
 
 function asBoolean(value, fallback = false) {
   if (value === undefined || value === null || value === '') {
@@ -57,6 +61,16 @@ const config = {
     from: process.env.SMTP_FROM || process.env.SMTP_USER || '',
   },
 };
+
+// Debug logging to check environment variables
+console.log('=== Environment Variables Debug ===');
+console.log('SMTP_HOST:', process.env.SMTP_HOST ? 'SET' : 'NOT SET');
+console.log('SMTP_USER:', process.env.SMTP_USER ? 'SET' : 'NOT SET');
+console.log('SMTP_PASS:', process.env.SMTP_PASS ? 'SET' : 'NOT SET');
+console.log('SMTP_FROM:', process.env.SMTP_FROM ? 'SET' : 'NOT SET');
+console.log('SMTP_PORT:', process.env.SMTP_PORT);
+console.log('SMTP_SECURE:', process.env.SMTP_SECURE);
+console.log('=====================================');
 
 config.linkedin.isConfigured = Boolean(
   config.linkedin.clientId && config.linkedin.clientSecret && config.linkedin.redirectUri

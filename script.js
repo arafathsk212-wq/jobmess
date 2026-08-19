@@ -619,14 +619,17 @@ async function sendBulkEmails() {
       }),
     });
     
-    showToast('Campaign created! Email sending has started in the background.');
-    
-    // Start polling for campaign progress
-    const campaignId = response.campaign.id;
-    pollCampaignProgress(campaignId, emailAddresses.length);
+    if (response.campaign) {
+      showToast('Campaign created! Email sending has started in the background.');
+      // Start polling for campaign progress
+      const campaignId = response.campaign.id;
+      pollCampaignProgress(campaignId, emailAddresses.length);
+    } else {
+      showToast('Campaign creation failed. Check Railway logs.', true);
+    }
     
   } catch (error) {
-    showToast(error.message, true);
+    showToast(`Error: ${error.message}`, true);
     elements.emailProgress.classList.add('hidden');
   }
 }
