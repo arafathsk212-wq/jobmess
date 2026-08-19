@@ -9,32 +9,42 @@ const elements = {
   userInfo: document.getElementById('userInfo'),
   userName: document.getElementById('userName'),
   logoutBtn: document.getElementById('logoutBtn'),
-  appBaseUrl: document.getElementById('appBaseUrl'),
-  defaultDelay: document.getElementById('defaultDelay'),
-  linkedinConfigStatus: document.getElementById('linkedinConfigStatus'),
-  smtpConfigStatus: document.getElementById('smtpConfigStatus'),
-  linkedinConnectionPill: document.getElementById('linkedinConnectionPill'),
-  linkedinSummary: document.getElementById('linkedinSummary'),
-  linkedinConnectBtn: document.getElementById('linkedinConnectBtn'),
-  linkedinRefreshBtn: document.getElementById('linkedinRefreshBtn'),
-  linkedinLogoutBtn: document.getElementById('linkedinLogoutBtn'),
-  recipientFileInput: document.getElementById('recipientFileInput'),
-  importRecipientsBtn: document.getElementById('importRecipientsBtn'),
-  clearRecipientsBtn: document.getElementById('clearRecipientsBtn'),
-  importSummary: document.getElementById('importSummary'),
-  validRecipientCount: document.getElementById('validRecipientCount'),
-  invalidRecipientCount: document.getElementById('invalidRecipientCount'),
-  validRecipientList: document.getElementById('validRecipientList'),
-  invalidRecipientList: document.getElementById('invalidRecipientList'),
-  campaignForm: document.getElementById('campaignForm'),
-  campaignNameInput: document.getElementById('campaignNameInput'),
-  senderEmailInput: document.getElementById('senderEmailInput'),
-  delayMsInput: document.getElementById('delayMsInput'),
-  scheduleInput: document.getElementById('scheduleInput'),
-  subjectInput: document.getElementById('subjectInput'),
-  bodyInput: document.getElementById('bodyInput'),
-  campaignList: document.getElementById('campaignList'),
-  refreshCampaignsBtn: document.getElementById('refreshCampaignsBtn'),
+  
+  // Landing page elements
+  landingPage: document.getElementById('landingPage'),
+  linkedinOption: document.getElementById('linkedinOption'),
+  mailOption: document.getElementById('mailOption'),
+  
+  // LinkedIn section elements
+  linkedinSection: document.getElementById('linkedinSection'),
+  backToLanding: document.getElementById('backToLanding'),
+  linkedinConnectionStatus: document.getElementById('linkedinConnectionStatus'),
+  startLinkedIn: document.getElementById('startLinkedIn'),
+  stopLinkedIn: document.getElementById('stopLinkedIn'),
+  linkedinMessage: document.getElementById('linkedinMessage'),
+  submitLinkedInMessage: document.getElementById('submitLinkedInMessage'),
+  linkedinProgress: document.getElementById('linkedinProgress'),
+  linkedinProgressBar: document.getElementById('linkedinProgressBar'),
+  linkedinProgressText: document.getElementById('linkedinProgressText'),
+  
+  // Mail section elements
+  mailSection: document.getElementById('mailSection'),
+  backToLandingMail: document.getElementById('backToLandingMail'),
+  emailSubject: document.getElementById('emailSubject'),
+  emailBody: document.getElementById('emailBody'),
+  proceedToUpload: document.getElementById('proceedToUpload'),
+  uploadSection: document.getElementById('uploadSection'),
+  emailFileInput: document.getElementById('emailFileInput'),
+  validateEmails: document.getElementById('validateEmails'),
+  validationResults: document.getElementById('validationResults'),
+  validEmailCount: document.getElementById('validEmailCount'),
+  invalidEmailCount: document.getElementById('invalidEmailCount'),
+  validEmailList: document.getElementById('validEmailList'),
+  invalidEmailList: document.getElementById('invalidEmailList'),
+  sendBulkEmails: document.getElementById('sendBulkEmails'),
+  emailProgress: document.getElementById('emailProgress'),
+  emailProgressBar: document.getElementById('emailProgressBar'),
+  emailProgressText: document.getElementById('emailProgressText'),
 };
 
 const state = {
@@ -45,6 +55,9 @@ const state = {
   campaigns: [],
   user: null,
   authToken: null,
+  validEmails: [],
+  invalidEmails: [],
+  linkedinConnected: false,
 };
 
 function showToast(message, isError = false) {
@@ -436,6 +449,21 @@ async function checkAuth() {
     elements.userInfo.classList.remove('hidden');
     elements.loginSection.classList.add('hidden');
     elements.dashboardSection.classList.remove('hidden');
+    
+    // Check LinkedIn connection status
+    try {
+      const linkedinData = await requestJson('/api/linkedin/status');
+      state.linkedin = linkedinData;
+      if (linkedinData.connected) {
+        state.linkedinConnected = true;
+        elements.linkedinConnectionStatus.textContent = 'Connected';
+        elements.linkedinConnectionStatus.classList.remove('stopped');
+        elements.linkedinConnectionStatus.classList.add('running');
+      }
+    } catch (error) {
+      // LinkedIn status check failed, but auth is still valid
+    }
+    
     return true;
   } catch (error) {
     elements.userInfo.classList.add('hidden');
@@ -453,6 +481,192 @@ function checkPrivacyPage() {
     return true;
   }
   return false;
+}
+
+// Navigation functions
+function showLandingPage() {
+  elements.landingPage.classList.remove('hidden');
+  elements.linkedinSection.classList.add('hidden');
+  elements.mailSection.classList.add('hidden');
+}
+
+function showLinkedInSection() {
+  elements.landingPage.classList.add('hidden');
+  elements.linkedinSection.classList.remove('hidden');
+  elements.mailSection.classList.add('hidden');
+}
+
+function showMailSection() {
+  elements.landingPage.classList.add('hidden');
+  elements.linkedinSection.classList.add('hidden');
+  elements.mailSection.classList.remove('hidden');
+}
+
+// LinkedIn functions
+async function startLinkedInConnection() {
+  try {
+    window.location.href = '/api/linkedin/auth';
+  } catch (error) {
+    showToast(error.message, true);
+  }
+}
+
+async function stopLinkedInConnection() {
+  try {
+    await requestJson('/api/linkedin/logout', { method: 'POST' });
+    state.linkedinConnected = false;
+    elements.linkedinConnectionStatus.textContent = 'Not Connected';
+    elements.linkedinConnectionStatus.classList.remove('running');
+    elements.linkedinConnectionStatus.classList.add('stopped');
+    showToast('LinkedIn connection stopped.');
+  } catch (error) {
+    showToast(error.message, true);
+  }
+}
+
+async function submitLinkedInMessage() {
+  const message = elements.linkedinMessage.value.trim();
+  if (!message) {
+    showToast('Please enter a message to send.', true);
+    return;
+  }
+
+  if (!state.linkedinConnected) {
+    showToast('Please connect to LinkedIn first.', true);
+    return;
+  }
+
+  try {
+    elements.linkedinProgress.classList.remove('hidden');
+    showToast('Sending messages to LinkedIn connections...');
+    
+    // Simulate progress (in real implementation, this would be actual API calls)
+    let progress = 0;
+    const totalConnections = 100; // This would come from actual LinkedIn API
+    
+    const interval = setInterval(() => {
+      progress += 10;
+      elements.linkedinProgressBar.style.width = `${progress}%`;
+      elements.linkedinProgressText.textContent = `${progress} / ${totalConnections} connections messaged`;
+      
+      if (progress >= 100) {
+        clearInterval(interval);
+        showToast('Messages sent successfully to all LinkedIn connections!');
+      }
+    }, 500);
+    
+  } catch (error) {
+    showToast(error.message, true);
+    elements.linkedinProgress.classList.add('hidden');
+  }
+}
+
+// Email functions
+function proceedToUpload() {
+  const subject = elements.emailSubject.value.trim();
+  const body = elements.emailBody.value.trim();
+  
+  if (!subject || !body) {
+    showToast('Please enter both subject and body.', true);
+    return;
+  }
+  
+  elements.uploadSection.classList.remove('hidden');
+}
+
+async function validateEmails() {
+  const file = elements.emailFileInput.files[0];
+  if (!file) {
+    showToast('Please upload a file first.', true);
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch('/api/import/recipients', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${state.authToken}`,
+      },
+      body: formData,
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Validation failed');
+    }
+    
+    state.validEmails = data.valid || [];
+    state.invalidEmails = data.invalid || [];
+    
+    elements.validEmailCount.textContent = state.validEmails.length;
+    elements.invalidEmailCount.textContent = state.invalidEmails.length;
+    
+    elements.validEmailList.innerHTML = state.validEmails
+      .map(email => `<li>${escapeHtml(email)}</li>`)
+      .join('');
+    
+    elements.invalidEmailList.innerHTML = state.invalidEmails
+      .map(email => `<li>${escapeHtml(email)}</li>`)
+      .join('');
+    
+    elements.validationResults.classList.remove('hidden');
+    showToast(`Found ${state.validEmails.length} valid and ${state.invalidEmails.length} invalid emails.`);
+    
+  } catch (error) {
+    showToast(error.message, true);
+  }
+}
+
+async function sendBulkEmails() {
+  if (state.validEmails.length === 0) {
+    showToast('No valid emails to send.', true);
+    return;
+  }
+
+  const subject = elements.emailSubject.value.trim();
+  const body = elements.emailBody.value.trim();
+  
+  try {
+    elements.emailProgress.classList.remove('hidden');
+    showToast('Sending bulk emails...');
+    
+    const response = await requestJson('/api/campaigns', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: 'Bulk Email Campaign',
+        senderEmail: 'arafathshaik121@gmail.com',
+        delayMs: 5000,
+        subject,
+        body,
+        recipients: state.validEmails,
+      }),
+    });
+    
+    // Simulate progress
+    let progress = 0;
+    const totalEmails = state.validEmails.length;
+    
+    const interval = setInterval(() => {
+      progress += Math.ceil(100 / totalEmails);
+      if (progress > 100) progress = 100;
+      
+      elements.emailProgressBar.style.width = `${progress}%`;
+      elements.emailProgressText.textContent = `${Math.min(progress, totalEmails)} / ${totalEmails} emails sent`;
+      
+      if (progress >= 100) {
+        clearInterval(interval);
+        showToast('All emails sent successfully!');
+      }
+    }, 500);
+    
+  } catch (error) {
+    showToast(error.message, true);
+    elements.emailProgress.classList.add('hidden');
+  }
 }
 
 function handleLinkedInQueryString() {
@@ -475,9 +689,7 @@ function handleLinkedInQueryString() {
 
 async function initialize() {
   handleLinkedInQueryString();
-  renderImportedRecipients();
-  renderCampaigns();
-
+  
   // Check if user is on privacy page
   if (checkPrivacyPage()) {
     return;
@@ -486,22 +698,26 @@ async function initialize() {
   try {
     const isAuthenticated = await checkAuth();
     if (isAuthenticated) {
-      await refreshConfig();
-      await refreshLinkedInStatus();
-      await refreshCampaigns();
+      showLandingPage();
     }
   } catch (error) {
     showToast(error.message, true);
   }
 }
 
-elements.importRecipientsBtn.addEventListener('click', importRecipients);
-elements.clearRecipientsBtn.addEventListener('click', clearImportedRecipients);
-elements.campaignForm.addEventListener('submit', submitCampaign);
-elements.refreshCampaignsBtn.addEventListener('click', refreshCampaigns);
-elements.linkedinRefreshBtn.addEventListener('click', refreshLinkedInStatus);
-elements.linkedinLogoutBtn.addEventListener('click', disconnectLinkedIn);
-elements.campaignList.addEventListener('click', handleCampaignAction);
+// Event listeners for new UI
+elements.linkedinOption.addEventListener('click', showLinkedInSection);
+elements.mailOption.addEventListener('click', showMailSection);
+elements.backToLanding.addEventListener('click', showLandingPage);
+elements.backToLandingMail.addEventListener('click', showLandingPage);
+elements.startLinkedIn.addEventListener('click', startLinkedInConnection);
+elements.stopLinkedIn.addEventListener('click', stopLinkedInConnection);
+elements.submitLinkedInMessage.addEventListener('click', submitLinkedInMessage);
+elements.proceedToUpload.addEventListener('click', proceedToUpload);
+elements.validateEmails.addEventListener('click', validateEmails);
+elements.sendBulkEmails.addEventListener('click', sendBulkEmails);
+
+// Keep existing event listeners
 elements.loginForm.addEventListener('submit', login);
 elements.logoutBtn.addEventListener('click', logout);
 

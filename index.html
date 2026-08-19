@@ -1,251 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Campaign Studio</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <div class="app-shell">
-      <header class="hero">
-        <div>
-          <p class="eyebrow">Real demo app</p>
-          <h1>Campaign Studio</h1>
-          <p class="hero-copy">
-            Sign in with LinkedIn via OAuth, import recipients from CSV or Excel, validate
-            addresses, and schedule email campaigns through SMTP or an Ethereal preview inbox.
-          </p>
-        </div>
-        <div id="toast" class="toast hidden" aria-live="polite"></div>
-        <div id="userInfo" class="user-info hidden">
-          <span id="userName"></span>
-          <button id="logoutBtn" class="secondary-btn" type="button">Logout</button>
-        </div>
-      </header>
-
-      <div id="loginSection" class="login-section">
-        <div class="login-card">
-          <h2>Login</h2>
-          <form id="loginForm">
-            <div class="field-group">
-              <label class="field-label" for="usernameInput">Username</label>
-              <input id="usernameInput" type="text" placeholder="admin" required />
-            </div>
-            <div class="field-group">
-              <label class="field-label" for="passwordInput">Password</label>
-              <input id="passwordInput" type="password" placeholder="admin123" required />
-            </div>
-            <button class="primary-btn" type="submit">Login</button>
-          </form>
-        </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Campaign Studio</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Campaign Studio</p>
+        <h1>LinkedIn & Email Campaigns</h1>
+        <p class="hero-copy">
+          Send messages to LinkedIn connections or bulk emails to your contacts
+        </p>
       </div>
-
-      <div id="privacySection" class="privacy-section hidden">
-        <div class="privacy-card">
-          <h1>Privacy Policy</h1>
-          <p><strong>Last Updated:</strong> August 19, 2026</p>
-          
-          <h2>1. Information We Collect</h2>
-          <p>Campaign Studio collects the following information:</p>
-          <ul>
-            <li>Email addresses and contact information you import</li>
-            <li>Campaign data and email content you create</li>
-            <li>LinkedIn profile information (when you connect via OAuth)</li>
-            <li>Email tracking data (opens, clicks) for campaigns you send</li>
-          </ul>
-
-          <h2>2. How We Use Your Information</h2>
-          <p>We use your information to:</p>
-          <ul>
-            <li>Send email campaigns on your behalf</li>
-            <li>Track campaign performance (opens, clicks)</li>
-            <li>Provide LinkedIn OAuth authentication</li>
-            <li>Improve our services</li>
-          </ul>
-
-          <h2>3. Data Storage</h2>
-          <p>All data is stored locally on your server in a secure database. We do not sell or share your data with third parties.</p>
-
-          <h2>4. LinkedIn OAuth</h2>
-          <p>When you connect LinkedIn, we request access to your basic profile information (name, email) for authentication purposes only. We do not post to your LinkedIn account or access your connections.</p>
-
-          <h2>5. Email Security</h2>
-          <p>Email campaigns are sent through secure SMTP connections. Your SMTP credentials are encrypted and stored securely.</p>
-
-          <h2>6. Your Rights</h2>
-          <p>You have the right to:</p>
-          <ul>
-            <li>Access your data</li>
-            <li>Delete your data</li>
-            <li>Disconnect LinkedIn integration</li>
-            <li>Export your campaign data</li>
-          </ul>
-
-          <h2>7. Contact Us</h2>
-          <p>For privacy-related questions, contact us at: arafathshaik121@gmail.com</p>
-
-          <button class="primary-btn" onclick="window.location.href='/'">Back to App</button>
-        </div>
+      <div id="toast" class="toast hidden" aria-live="polite"></div>
+      <div id="userInfo" class="user-info hidden">
+        <span id="userName"></span>
+        <button id="logoutBtn" class="secondary-btn" type="button">Logout</button>
       </div>
+    </header>
+
+    <div id="loginSection" class="login-section">
+      <div class="login-card">
+        <h2>Login</h2>
+        <form id="loginForm">
+          <div class="field-group">
+            <label class="field-label" for="usernameInput">Username</label>
+            <input id="usernameInput" type="text" placeholder="admin" required />
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="passwordInput">Password</label>
+            <input id="passwordInput" type="password" placeholder="admin123" required />
+          </div>
+          <button class="primary-btn" type="submit">Login</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="privacySection" class="privacy-section hidden">
+      <div class="privacy-card">
+        <h1>Privacy Policy</h1>
+        <p><strong>Last Updated:</strong> August 19, 2026</p>
+        
+        <h2>1. Information We Collect</h2>
+        <p>Campaign Studio collects the following information:</p>
+        <ul>
+          <li>Email addresses and contact information you import</li>
+          <li>Campaign data and email content you create</li>
+          <li>LinkedIn profile information (when you connect via OAuth)</li>
+          <li>Email tracking data (opens, clicks) for campaigns you send</li>
+        </ul>
+
+        <h2>2. How We Use Your Information</h2>
+        <p>We use your information to:</p>
+        <ul>
+          <li>Send email campaigns on your behalf</li>
+          <li>Track campaign performance (opens, clicks)</li>
+          <li>Provide LinkedIn OAuth authentication</li>
+          <li>Improve our services</li>
+        </ul>
+
+        <h2>3. Data Storage</h2>
+        <p>All data is stored locally on your server in a secure database. We do not sell or share your data with third parties.</p>
+
+        <h2>4. LinkedIn OAuth</h2>
+        <p>When you connect LinkedIn, we request access to your basic profile information (name, email) for authentication purposes only. We do not post to your LinkedIn account or access your connections.</p>
+
+        <h2>5. Email Security</h2>
+        <p>Email campaigns are sent through secure SMTP connections. Your SMTP credentials are encrypted and stored securely.</p>
+
+        <h2>6. Your Rights</h2>
+        <p>You have the right to:</p>
+        <ul>
+          <li>Access your data</li>
+          <li>Delete your data</li>
+          <li>Disconnect LinkedIn integration</li>
+          <li>Export your campaign data</li>
+        </ul>
+
+        <h2>7. Contact Us</h2>
+        <p>For privacy-related questions, contact us at: arafathshaik121@gmail.com</p>
+
+        <button class="primary-btn" onclick="window.location.href='/'">Back to App</button>
+      </div>
+    </div>
 
       <main class="dashboard-grid hidden" id="dashboardSection">
-        <section class="panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Step 1</p>
-              <h2>Integration Status</h2>
+        <!-- Landing Page with Options -->
+        <div id="landingPage" class="landing-section">
+          <div class="option-cards">
+            <div class="option-card" id="linkedinOption">
+              <div class="option-icon">🔗</div>
+              <h2>LinkedIn</h2>
+              <p>Send messages to your LinkedIn connections</p>
+              <button class="primary-btn">Select</button>
+            </div>
+            <div class="option-card" id="mailOption">
+              <div class="option-icon">📧</div>
+              <h2>Email</h2>
+              <p>Send bulk emails to your contacts</p>
+              <button class="primary-btn">Select</button>
             </div>
           </div>
+        </div>
 
-          <div class="status-grid">
-            <div class="metric-box">
-              <span class="metric-label">App URL</span>
-              <strong id="appBaseUrl">Loading...</strong>
-            </div>
-            <div class="metric-box">
-              <span class="metric-label">Default Delay</span>
-              <strong id="defaultDelay">Loading...</strong>
-            </div>
-            <div class="metric-box">
-              <span class="metric-label">LinkedIn OAuth</span>
-              <strong id="linkedinConfigStatus">Loading...</strong>
-            </div>
-            <div class="metric-box">
-              <span class="metric-label">SMTP</span>
-              <strong id="smtpConfigStatus">Loading...</strong>
-            </div>
-          </div>
-
-          <div class="linkedin-card">
-            <div class="linkedin-summary">
+        <!-- LinkedIn Section -->
+        <div id="linkedinSection" class="linkedin-section hidden">
+          <div class="panel panel-wide">
+            <div class="panel-header">
               <div>
-                <h3>LinkedIn Sign-In</h3>
-                <p id="linkedinSummary" class="muted-text">
-                  This workspace uses LinkedIn OAuth and never asks for a LinkedIn password.
-                </p>
+                <h2>LinkedIn Messaging</h2>
+                <p class="muted-text">Send messages to your LinkedIn connections</p>
               </div>
-              <span id="linkedinConnectionPill" class="status-pill stopped">Not Connected</span>
+              <button id="backToLanding" class="secondary-btn">Back</button>
             </div>
+
+            <div class="linkedin-status">
+              <span id="linkedinConnectionStatus" class="status-pill stopped">Not Connected</span>
+              <div class="connection-controls">
+                <button id="startLinkedIn" class="primary-btn">Start Connection</button>
+                <button id="stopLinkedIn" class="danger-btn">Stop Connection</button>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">Message to send</label>
+              <textarea id="linkedinMessage" rows="6" placeholder="Type your message here to send to all LinkedIn connections..."></textarea>
+            </div>
+
             <div class="toolbar">
-              <a id="linkedinConnectBtn" class="primary-btn" href="/api/linkedin/auth">
-                Connect LinkedIn
-              </a>
-              <button id="linkedinRefreshBtn" class="secondary-btn" type="button">Refresh</button>
-              <button id="linkedinLogoutBtn" class="danger-btn" type="button">Disconnect</button>
+              <button id="submitLinkedInMessage" class="primary-btn">Submit Message</button>
             </div>
-          </div>
-        </section>
 
-        <section class="panel">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Step 2</p>
-              <h2>Import Recipients</h2>
-            </div>
-          </div>
-
-          <div class="field-group">
-            <label class="field-label" for="recipientFileInput">Recipient file</label>
-            <input id="recipientFileInput" type="file" accept=".csv,.xls,.xlsx,.txt" />
-            <p class="help-text">
-              Upload a CSV, TSV, TXT, or Excel file. The backend extracts addresses and checks MX
-              records before campaign creation.
-            </p>
-          </div>
-
-          <div class="toolbar">
-            <button id="importRecipientsBtn" class="primary-btn" type="button">Import File</button>
-            <button id="clearRecipientsBtn" class="secondary-btn" type="button">Clear</button>
-          </div>
-
-          <div id="importSummary" class="summary-box">
-            No recipient file imported yet.
-          </div>
-
-          <div class="result-columns">
-            <div class="result-panel">
-              <div class="result-panel-header">
-                <h3>Valid Recipients</h3>
-                <span id="validRecipientCount" class="count-pill">0</span>
+            <div id="linkedinProgress" class="progress-section hidden">
+              <h3>Message Progress</h3>
+              <div class="progress-bar">
+                <div id="linkedinProgressBar" class="progress-fill" style="width: 0%"></div>
               </div>
-              <ul id="validRecipientList" class="result-list"></ul>
+              <p id="linkedinProgressText">0 / 0 connections messaged</p>
             </div>
+          </div>
+        </div>
 
-            <div class="result-panel">
-              <div class="result-panel-header">
-                <h3>Invalid Recipients</h3>
-                <span id="invalidRecipientCount" class="count-pill">0</span>
+        <!-- Email Section -->
+        <div id="mailSection" class="mail-section hidden">
+          <div class="panel panel-wide">
+            <div class="panel-header">
+              <div>
+                <h2>Email Campaign</h2>
+                <p class="muted-text">Send bulk emails to your contacts</p>
               </div>
-              <ul id="invalidRecipientList" class="result-list"></ul>
+              <button id="backToLandingMail" class="secondary-btn">Back</button>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="emailSubject">Email Subject</label>
+              <input id="emailSubject" type="text" placeholder="Enter email subject..." />
+            </div>
+
+            <div class="field-group">
+              <label class="field-label" for="emailBody">Email Body</label>
+              <textarea id="emailBody" rows="8" placeholder="Enter email body content..."></textarea>
+            </div>
+
+            <div class="toolbar">
+              <button id="proceedToUpload" class="primary-btn">Proceed to Upload</button>
+            </div>
+
+            <div id="uploadSection" class="upload-section hidden">
+              <div class="field-group">
+                <label class="field-label" for="emailFileInput">Upload Contact File</label>
+                <input id="emailFileInput" type="file" accept=".csv,.xls,.xlsx,.txt" />
+                <p class="help-text">Upload CSV, Excel, or text file with email addresses</p>
+              </div>
+
+              <div class="toolbar">
+                <button id="validateEmails" class="primary-btn">Validate Emails</button>
+              </div>
+            </div>
+
+            <div id="validationResults" class="validation-results hidden">
+              <h3>Email Validation Results</h3>
+              <div class="result-columns">
+                <div class="result-panel">
+                  <div class="result-panel-header">
+                    <h3>Valid Emails</h3>
+                    <span id="validEmailCount" class="count-pill">0</span>
+                  </div>
+                  <ul id="validEmailList" class="result-list"></ul>
+                </div>
+                <div class="result-panel">
+                  <div class="result-panel-header">
+                    <h3>Invalid Emails</h3>
+                    <span id="invalidEmailCount" class="count-pill">0</span>
+                  </div>
+                  <ul id="invalidEmailList" class="result-list"></ul>
+                </div>
+              </div>
+
+              <div class="toolbar">
+                <button id="sendBulkEmails" class="primary-btn">Send Bulk Emails</button>
+              </div>
+            </div>
+
+            <div id="emailProgress" class="progress-section hidden">
+              <h3>Email Sending Progress</h3>
+              <div class="progress-bar">
+                <div id="emailProgressBar" class="progress-fill" style="width: 0%"></div>
+              </div>
+              <p id="emailProgressText">0 / 0 emails sent</p>
             </div>
           </div>
-        </section>
-
-        <section class="panel panel-wide">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Step 3</p>
-              <h2>Create Campaign</h2>
-            </div>
-          </div>
-
-          <form id="campaignForm" class="form-grid">
-            <div class="field-group">
-              <label class="field-label" for="campaignNameInput">Campaign name</label>
-              <input id="campaignNameInput" type="text" placeholder="September follow-up" />
-            </div>
-
-            <div class="field-group">
-              <label class="field-label" for="senderEmailInput">Sender email</label>
-              <input id="senderEmailInput" type="email" placeholder="sender@example.com" />
-            </div>
-
-            <div class="field-group">
-              <label class="field-label" for="delayMsInput">Delay between emails</label>
-              <input id="delayMsInput" type="number" min="1000" step="1000" placeholder="5000" />
-            </div>
-
-            <div class="field-group">
-              <label class="field-label" for="scheduleInput">Schedule send</label>
-              <input id="scheduleInput" type="datetime-local" />
-            </div>
-
-            <div class="field-group field-group-wide">
-              <label class="field-label" for="subjectInput">Subject</label>
-              <input
-                id="subjectInput"
-                type="text"
-                placeholder="Hi {{firstName}}, quick follow-up from our conversation"
-              />
-            </div>
-
-            <div class="field-group field-group-wide">
-              <label class="field-label" for="bodyInput">Message body</label>
-              <textarea
-                id="bodyInput"
-                rows="8"
-                placeholder="Hi {{firstName}},&#10;&#10;Thanks for connecting. I wanted to share..."
-              ></textarea>
-            </div>
-
-            <div class="field-group field-group-wide">
-              <button class="primary-btn" type="submit">Save Campaign</button>
-            </div>
-          </form>
-        </section>
-
-        <section class="panel panel-wide">
-          <div class="panel-header">
-            <div>
-              <p class="eyebrow">Step 4</p>
-              <h2>Campaign Queue</h2>
-            </div>
-            <button id="refreshCampaignsBtn" class="secondary-btn" type="button">Refresh</button>
-          </div>
-
-          <div id="campaignList" class="campaign-list"></div>
-        </section>
+        </div>
       </main>
     </div>
 
