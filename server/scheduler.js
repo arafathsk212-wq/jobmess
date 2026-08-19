@@ -10,6 +10,7 @@ class CampaignScheduler {
   }
 
   schedule(campaign) {
+    console.log(`Scheduler.schedule called for campaign ${campaign.id}, status: ${campaign.status}`);
     if (!campaign || !campaign.id) return;
     if (this.shuttingDown) return;
 
@@ -21,6 +22,7 @@ class CampaignScheduler {
     this.cancel(campaign.id);
 
     if (campaign.status === 'sending') {
+      console.log(`Campaign ${campaign.id} is already sending, restarting`);
       this.runCampaign(campaign.id).catch((error) => {
         console.error(`Scheduler restarted campaign ${campaign.id} failed:`, error.message);
       });
@@ -29,7 +31,10 @@ class CampaignScheduler {
 
     const scheduledAt = campaign.scheduledFor ? new Date(campaign.scheduledFor).getTime() : Date.now();
     const delay = Math.max(0, scheduledAt - Date.now());
+    console.log(`Scheduling campaign ${campaign.id} to run in ${delay}ms`);
+    
     const timeoutId = setTimeout(async () => {
+      console.log(`Timeout triggered for campaign ${campaign.id}`);
       this.jobs.delete(campaign.id);
       if (this.running.has(campaign.id)) return;
       this.running.add(campaign.id);
