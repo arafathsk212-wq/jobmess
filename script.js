@@ -566,18 +566,18 @@ async function validateEmails() {
         }),
       });
       
-      state.validEmails = response.valid || [];
-      state.invalidEmails = response.invalid || [];
+      state.validEmails = response.validRecipients || [];
+      state.invalidEmails = response.invalidRecipients || [];
       
       elements.validEmailCount.textContent = state.validEmails.length;
       elements.invalidEmailCount.textContent = state.invalidEmails.length;
       
       elements.validEmailList.innerHTML = state.validEmails
-        .map(email => `<li>${escapeHtml(email)}</li>`)
+        .map(recipient => `<li>${escapeHtml(recipient.email || recipient)}</li>`)
         .join('');
       
       elements.invalidEmailList.innerHTML = state.invalidEmails
-        .map(email => `<li>${escapeHtml(email)}</li>`)
+        .map(recipient => `<li>${escapeHtml(recipient.email || recipient)}</li>`)
         .join('');
       
       elements.validationResults.classList.remove('hidden');
@@ -604,6 +604,9 @@ async function sendBulkEmails() {
     elements.emailProgress.classList.remove('hidden');
     showToast('Sending bulk emails...');
     
+    // Extract email addresses from recipient objects
+    const emailAddresses = state.validEmails.map(r => r.email || r);
+    
     const response = await requestJson('/api/campaigns', {
       method: 'POST',
       body: JSON.stringify({
@@ -612,13 +615,13 @@ async function sendBulkEmails() {
         delayMs: 5000,
         subject,
         body,
-        recipients: state.validEmails,
+        recipients: emailAddresses,
       }),
     });
     
     // Simulate progress
     let progress = 0;
-    const totalEmails = state.validEmails.length;
+    const totalEmails = emailAddresses.length;
     
     const interval = setInterval(() => {
       progress += Math.ceil(100 / totalEmails);
