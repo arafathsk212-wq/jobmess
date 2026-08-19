@@ -738,11 +738,39 @@ input:focus, textarea:focus, select:focus {
   padding: 20px;
 }
 
+.linkedin-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.info-card {
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.info-card h3 {
+  margin: 0 0 10px 0;
+  color: #fbbf24;
+  font-size: 16px;
+}
+
+.info-card p {
+  color: var(--muted);
+  margin: 0 0 10px 0;
+  line-height: 1.5;
+}
+
+.info-card p:last-child {
+  margin-bottom: 0;
+}
+
 .linkedin-status {
   display: flex;
   align-items: center;
   gap: 20px;
-  margin-bottom: 20px;
   padding: 20px;
   background: rgba(99, 102, 241, 0.1);
   border-radius: 8px;

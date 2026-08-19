@@ -21,11 +21,8 @@ const elements = {
   linkedinConnectionStatus: document.getElementById('linkedinConnectionStatus'),
   startLinkedIn: document.getElementById('startLinkedIn'),
   stopLinkedIn: document.getElementById('stopLinkedIn'),
-  linkedinMessage: document.getElementById('linkedinMessage'),
-  submitLinkedInMessage: document.getElementById('submitLinkedInMessage'),
-  linkedinProgress: document.getElementById('linkedinProgress'),
-  linkedinProgressBar: document.getElementById('linkedinProgressBar'),
-  linkedinProgressText: document.getElementById('linkedinProgressText'),
+  linkedinProfile: document.getElementById('linkedinProfile'),
+  profileDetails: document.getElementById('profileDetails'),
   
   // Mail section elements
   mailSection: document.getElementById('mailSection'),
@@ -459,6 +456,7 @@ async function checkAuth() {
         elements.linkedinConnectionStatus.textContent = 'Connected';
         elements.linkedinConnectionStatus.classList.remove('stopped');
         elements.linkedinConnectionStatus.classList.add('running');
+        await loadLinkedInProfile();
       }
     } catch (error) {
       // LinkedIn status check failed, but auth is still valid
@@ -503,14 +501,6 @@ function showMailSection() {
 }
 
 // LinkedIn functions
-async function startLinkedInConnection() {
-  try {
-    window.location.href = '/api/linkedin/auth';
-  } catch (error) {
-    showToast(error.message, true);
-  }
-}
-
 async function stopLinkedInConnection() {
   try {
     await requestJson('/api/linkedin/logout', { method: 'POST' });
@@ -518,46 +508,26 @@ async function stopLinkedInConnection() {
     elements.linkedinConnectionStatus.textContent = 'Not Connected';
     elements.linkedinConnectionStatus.classList.remove('running');
     elements.linkedinConnectionStatus.classList.add('stopped');
-    showToast('LinkedIn connection stopped.');
+    elements.linkedinProfile.classList.add('hidden');
+    showToast('LinkedIn disconnected.');
   } catch (error) {
     showToast(error.message, true);
   }
 }
 
-async function submitLinkedInMessage() {
-  const message = elements.linkedinMessage.value.trim();
-  if (!message) {
-    showToast('Please enter a message to send.', true);
-    return;
-  }
-
-  if (!state.linkedinConnected) {
-    showToast('Please connect to LinkedIn first.', true);
-    return;
-  }
-
+async function loadLinkedInProfile() {
   try {
-    elements.linkedinProgress.classList.remove('hidden');
-    showToast('Sending messages to LinkedIn connections...');
-    
-    // Simulate progress (in real implementation, this would be actual API calls)
-    let progress = 0;
-    const totalConnections = 100; // This would come from actual LinkedIn API
-    
-    const interval = setInterval(() => {
-      progress += 10;
-      elements.linkedinProgressBar.style.width = `${progress}%`;
-      elements.linkedinProgressText.textContent = `${progress} / ${totalConnections} connections messaged`;
-      
-      if (progress >= 100) {
-        clearInterval(interval);
-        showToast('Messages sent successfully to all LinkedIn connections!');
-      }
-    }, 500);
-    
+    const data = await requestJson('/api/linkedin/profile');
+    if (data.profile) {
+      elements.profileDetails.innerHTML = `
+        <p><strong>Name:</strong> ${escapeHtml(data.profile.name || 'N/A')}</p>
+        <p><strong>Email:</strong> ${escapeHtml(data.profile.email || 'N/A')}</p>
+        <p><strong>LinkedIn ID:</strong> ${escapeHtml(data.profile.id || 'N/A')}</p>
+      `;
+      elements.linkedinProfile.classList.remove('hidden');
+    }
   } catch (error) {
-    showToast(error.message, true);
-    elements.linkedinProgress.classList.add('hidden');
+    console.error('Failed to load LinkedIn profile:', error);
   }
 }
 
@@ -710,9 +680,7 @@ elements.linkedinOption.addEventListener('click', showLinkedInSection);
 elements.mailOption.addEventListener('click', showMailSection);
 elements.backToLanding.addEventListener('click', showLandingPage);
 elements.backToLandingMail.addEventListener('click', showLandingPage);
-elements.startLinkedIn.addEventListener('click', startLinkedInConnection);
 elements.stopLinkedIn.addEventListener('click', stopLinkedInConnection);
-elements.submitLinkedInMessage.addEventListener('click', submitLinkedInMessage);
 elements.proceedToUpload.addEventListener('click', proceedToUpload);
 elements.validateEmails.addEventListener('click', validateEmails);
 elements.sendBulkEmails.addEventListener('click', sendBulkEmails);

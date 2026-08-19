@@ -95,7 +95,7 @@
             <div class="option-card" id="linkedinOption">
               <div class="option-icon">🔗</div>
               <h2>LinkedIn</h2>
-              <p>Send messages to your LinkedIn connections</p>
+              <p>Connect your LinkedIn profile for authentication</p>
               <button class="primary-btn">Select</button>
             </div>
             <div class="option-card" id="mailOption">
@@ -112,35 +112,31 @@
           <div class="panel panel-wide">
             <div class="panel-header">
               <div>
-                <h2>LinkedIn Messaging</h2>
-                <p class="muted-text">Send messages to your LinkedIn connections</p>
+                <h2>LinkedIn Integration</h2>
+                <p class="muted-text">LinkedIn OAuth authentication for profile access</p>
               </div>
               <button id="backToLanding" class="secondary-btn">Back</button>
             </div>
 
-            <div class="linkedin-status">
-              <span id="linkedinConnectionStatus" class="status-pill stopped">Not Connected</span>
-              <div class="connection-controls">
-                <button id="startLinkedIn" class="primary-btn">Start Connection</button>
-                <button id="stopLinkedIn" class="danger-btn">Stop Connection</button>
+            <div class="linkedin-info">
+              <div class="info-card">
+                <h3>⚠️ LinkedIn Messaging Limitation</h3>
+                <p>LinkedIn's messaging API requires special business-level permissions that are not available to individual developers. The current OAuth integration only provides basic profile access.</p>
+                <p><strong>Alternative:</strong> Use the Email feature to contact your LinkedIn connections via email instead.</p>
               </div>
-            </div>
 
-            <div class="field-group">
-              <label class="field-label">Message to send</label>
-              <textarea id="linkedinMessage" rows="6" placeholder="Type your message here to send to all LinkedIn connections..."></textarea>
-            </div>
-
-            <div class="toolbar">
-              <button id="submitLinkedInMessage" class="primary-btn">Submit Message</button>
-            </div>
-
-            <div id="linkedinProgress" class="progress-section hidden">
-              <h3>Message Progress</h3>
-              <div class="progress-bar">
-                <div id="linkedinProgressBar" class="progress-fill" style="width: 0%"></div>
+              <div class="linkedin-status">
+                <span id="linkedinConnectionStatus" class="status-pill stopped">Not Connected</span>
+                <div class="connection-controls">
+                  <a id="startLinkedIn" class="primary-btn" href="/api/linkedin/auth">Connect LinkedIn</a>
+                  <button id="stopLinkedIn" class="danger-btn">Disconnect</button>
+                </div>
               </div>
-              <p id="linkedinProgressText">0 / 0 connections messaged</p>
+
+              <div class="linkedin-profile hidden" id="linkedinProfile">
+                <h3>Your LinkedIn Profile</h3>
+                <div id="profileDetails"></div>
+              </div>
             </div>
           </div>
         </div>
