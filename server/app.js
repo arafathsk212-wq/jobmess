@@ -125,11 +125,6 @@ async function runCampaign(campaignId) {
 
   console.log(`Campaign ${campaignId} status: ${activeCampaign.status}`);
   
-  if (scheduler.isRunning(campaignId) && activeCampaign.status !== 'sending') {
-    console.log(`Campaign ${campaignId} already running`);
-    return;
-  }
-
   const terminalStates = ['completed', 'cancelled', 'failed'];
   if (terminalStates.includes(activeCampaign.status)) {
     console.log(`Campaign ${campaignId} in terminal state: ${activeCampaign.status}`);
