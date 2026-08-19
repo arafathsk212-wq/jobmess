@@ -552,40 +552,40 @@ async function validateEmails() {
   }
 
   try {
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    const response = await fetch('/api/import/recipients', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${state.authToken}`,
-      },
-      body: formData,
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.error || 'Validation failed');
-    }
-    
-    state.validEmails = data.valid || [];
-    state.invalidEmails = data.invalid || [];
-    
-    elements.validEmailCount.textContent = state.validEmails.length;
-    elements.invalidEmailCount.textContent = state.invalidEmails.length;
-    
-    elements.validEmailList.innerHTML = state.validEmails
-      .map(email => `<li>${escapeHtml(email)}</li>`)
-      .join('');
-    
-    elements.invalidEmailList.innerHTML = state.invalidEmails
-      .map(email => `<li>${escapeHtml(email)}</li>`)
-      .join('');
-    
-    elements.validationResults.classList.remove('hidden');
-    showToast(`Found ${state.validEmails.length} valid and ${state.invalidEmails.length} invalid emails.`);
-    
+    // Convert file to base64
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = async () => {
+      const base64 = reader.result.split(',')[1];
+      
+      const response = await requestJson('/api/recipients/import', {
+        method: 'POST',
+        body: JSON.stringify({
+          fileName: file.name,
+          contentBase64: base64,
+        }),
+      });
+      
+      state.validEmails = response.valid || [];
+      state.invalidEmails = response.invalid || [];
+      
+      elements.validEmailCount.textContent = state.validEmails.length;
+      elements.invalidEmailCount.textContent = state.invalidEmails.length;
+      
+      elements.validEmailList.innerHTML = state.validEmails
+        .map(email => `<li>${escapeHtml(email)}</li>`)
+        .join('');
+      
+      elements.invalidEmailList.innerHTML = state.invalidEmails
+        .map(email => `<li>${escapeHtml(email)}</li>`)
+        .join('');
+      
+      elements.validationResults.classList.remove('hidden');
+      showToast(`Found ${state.validEmails.length} valid and ${state.invalidEmails.length} invalid emails.`);
+    };
+    reader.onerror = () => {
+      showToast('Failed to read file.', true);
+    };
   } catch (error) {
     showToast(error.message, true);
   }
