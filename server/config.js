@@ -55,7 +55,7 @@ const config = {
   smtp: {
     host: process.env.SMTP_HOST || '',
     port: asNumber(process.env.SMTP_PORT, 587),
-    secure: asBoolean(process.env.SMTP_SECURE, false), // Use the environment variable, default to false for port 587
+    secure: asNumber(process.env.SMTP_PORT, 587) === 465, // Force correct setting: port 465=true, port 587=false
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASS || '',
     from: process.env.SMTP_FROM || process.env.SMTP_USER || '',
@@ -69,7 +69,8 @@ console.log('SMTP_USER:', process.env.SMTP_USER ? 'SET' : 'NOT SET');
 console.log('SMTP_PASS:', process.env.SMTP_PASS ? 'SET' : 'NOT SET');
 console.log('SMTP_FROM:', process.env.SMTP_FROM ? 'SET' : 'NOT SET');
 console.log('SMTP_PORT:', process.env.SMTP_PORT);
-console.log('SMTP_SECURE:', process.env.SMTP_SECURE);
+console.log('SMTP_SECURE (env):', process.env.SMTP_SECURE);
+console.log('SMTP_SECURE (calculated):', asNumber(process.env.SMTP_PORT, 587) === 465);
 console.log('=====================================');
 
 config.linkedin.isConfigured = Boolean(
