@@ -74,23 +74,42 @@ async function createTransporter(config) {
         secure: false,
         auth: { user: testAccount.user, pass: testAccount.pass },
       }),
-      accountInfo: testAccount,
     };
   }
 
-  const host = config.host || (config.provider === 'gmail' ? 'smtp.gmail.com' : config.provider === 'outlook' ? 'smtp.office365.com' : 'smtp.gmail.com');
-  const port = Number(config.port) || 587;
-  const secure = config.secure === true || config.secure === 'true' || port === 465;
+  const host = config.host || config.smtpHost;
+  const port = config.port || config.smtpPort || 587;
+  const secure = config.secure !== undefined ? config.secure : port === 465;
+  const smtpUser = config.user || config.smtpUser;
+  const smtpPass = config.pass || config.smtpPass;
 
+  console.log(`Creating SMTP transporter: host=${host}, port=${port}, secure=${secure}, user=${smtpUser}`);
+  
   const transporter = nodemailer.createTransport({
     host,
     port,
     secure,
-    auth: { user: config.user || config.smtpUser, pass: config.pass || config.smtpPass },
-    tls: { rejectUnauthorized: false },
+    auth: {
+      user: smtpUser,
+      pass: smtpPass,
+    },
+    tls: {
+      rejectUnauthorized: false, // Allow self-signed certificates
+    },
+    debug: true, // Enable debug logging
+    logger: true, // Enable logger
   });
 
-  return { isEthereal: false, transporter };
+  try {
+    console.log('Verifying SMTP connection...');
+    await transporter.verify();
+    console.log('SMTP connection verified successfully');
+    return { transporter, isEthereal: false };
+  } catch (error) {
+    console.error('SMTP verification failed:', error.message);
+    console.error('Full error:', error);
+    return { transporter, isEthereal: true };
+  }
 }
 
 function interpolate(template, data = {}) {
