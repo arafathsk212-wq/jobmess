@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sendgrid/mail": "^8.1.4",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^13.0.3",
     "cheerio": "^1.2.0",

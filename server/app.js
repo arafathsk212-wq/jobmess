@@ -146,9 +146,13 @@ async function runCampaign(campaignId) {
     pass: config.smtp.pass,
   });
 
+  const useSendGridAPI = transportDetails.useSendGridAPI;
+  
   repos.appendCampaignLog(campaignId, {
     level: 'info',
-    message: transportDetails.isEthereal
+    message: transportDetails.useSendGridAPI
+      ? 'Using SendGrid API for email sending (HTTP-based, no SMTP required)'
+      : transportDetails.isEthereal
       ? 'Using an Ethereal preview inbox because SMTP credentials are not configured.'
       : `SMTP connection ready. Host: ${config.smtp.host}, Port: ${config.smtp.port}, User: ${config.smtp.user}`,
   });
@@ -181,6 +185,7 @@ async function runCampaign(campaignId) {
         baseUrl: config.appBaseUrl,
         campaignId,
         enableTracking: true,
+        useSendGridAPI: useSendGridAPI,
       });
 
       console.log(`Successfully sent email to ${recipient.email}. Message ID: ${result.messageId}`);

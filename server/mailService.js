@@ -2,6 +2,7 @@ const dns = require('dns').promises;
 const nodemailer = require('nodemailer');
 const cheerio = require('cheerio');
 const juice = require('juice');
+const sgMail = require('@sendgrid/mail');
 
 const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
 
@@ -64,6 +65,17 @@ async function validateEmailBatch(emails) {
 }
 
 async function createTransporter(config) {
+  // Check if using SendGrid API
+  if (config.host === 'smtp.sendgrid.net' && config.user === 'apikey') {
+    console.log('Using SendGrid API instead of SMTP');
+    sgMail.setApiKey(config.pass);
+    return { 
+      transporter: null, 
+      isEthereal: false, 
+      useSendGridAPI: true 
+    };
+  }
+
   if (config.provider === 'ethereal' || (!config.pass && !config.smtpPass)) {
     const testAccount = await nodemailer.createTestAccount();
     return {
@@ -215,6 +227,7 @@ async function sendMail({
   baseUrl = null,
   campaignId = null,
   enableTracking = true,
+  useSendGridAPI = false,
 }) {
   const personalizedSubject = interpolate(subject, contactData);
   const personalizedText = bodyType === 'text' || bodyType === 'both'
@@ -249,6 +262,34 @@ async function sendMail({
     textContent += `\n\n${buildTrackingPixel(baseUrl, campaignId, to)}`;
   }
 
+  // Use SendGrid API if configured
+  if (useSendGridAPI) {
+    console.log(`Sending email via SendGrid API to ${to}`);
+    const msg = {
+      to: to,
+      from: from || 'arafathshaik121@gmail.com',
+      subject: personalizedSubject,
+    };
+    if (htmlContent) msg.html = htmlContent;
+    if (textContent) msg.text = textContent;
+
+    try {
+      const response = await sgMail.send(msg);
+      console.log(`SendGrid API response:`, response[0].statusCode);
+      return {
+        success: true,
+        messageId: response[0].headers['x-message-id'],
+        previewUrl: null,
+        to,
+        trackingApplied,
+      };
+    } catch (error) {
+      console.error('SendGrid API error:', error.response?.body || error.message);
+      throw error;
+    }
+  }
+
+  // Use SMTP transporter
   const mailOptions = {
     from: from || '"Campaign Studio" <noreply@campaign.local>',
     to,
