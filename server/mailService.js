@@ -234,7 +234,13 @@ async function sendMail({
   if (htmlContent) mailOptions.html = htmlContent;
   if (textContent) mailOptions.text = textContent;
 
-  const info = await transporter.sendMail(mailOptions);
+  // Add timeout to prevent hanging
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Email sending timeout after 30 seconds')), 30000)
+  );
+  
+  const sendPromise = transporter.sendMail(mailOptions);
+  const info = await Promise.race([sendPromise, timeoutPromise]);
   const previewUrl = nodemailer.getTestMessageUrl(info);
 
   return {

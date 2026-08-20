@@ -55,7 +55,7 @@ const config = {
   smtp: {
     host: process.env.SMTP_HOST || '',
     port: asNumber(process.env.SMTP_PORT, 587),
-    secure: asBoolean(process.env.SMTP_SECURE, false),
+    secure: asNumber(process.env.SMTP_PORT, 587) === 465, // Only secure on port 465, not 587
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASS || '',
     from: process.env.SMTP_FROM || process.env.SMTP_USER || '',

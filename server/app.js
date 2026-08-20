@@ -141,7 +141,7 @@ async function runCampaign(campaignId) {
   const transportDetails = await createTransporter({
     host: config.smtp.host,
     port: config.smtp.port,
-    secure: config.smtp.secure,
+    secure: config.smtp.port === 465, // Only secure on port 465, not 587
     smtpUser: config.smtp.user,
     smtpPass: config.smtp.pass,
   });
