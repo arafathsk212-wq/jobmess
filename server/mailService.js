@@ -257,13 +257,8 @@ async function sendMail({
   if (htmlContent) mailOptions.html = htmlContent;
   if (textContent) mailOptions.text = textContent;
 
-  // Add timeout to prevent hanging (increased to 60 seconds)
-  const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Email sending timeout after 60 seconds')), 60000)
-  );
-  
-  const sendPromise = transporter.sendMail(mailOptions);
-  const info = await Promise.race([sendPromise, timeoutPromise]);
+  // Send email without custom timeout - let nodemailer handle timeouts
+  const info = await transporter.sendMail(mailOptions);
   const previewUrl = nodemailer.getTestMessageUrl(info);
 
   return {
