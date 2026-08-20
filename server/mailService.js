@@ -98,11 +98,15 @@ async function createTransporter(config) {
     },
     debug: true, // Enable debug logging
     logger: true, // Enable logger
+    connectionTimeout: 60000, // 60 seconds connection timeout
+    greetingTimeout: 30000, // 30 seconds greeting timeout
+    socketTimeout: 60000, // 60 seconds socket timeout
   });
 
   try {
     console.log('Verifying SMTP connection...');
-    await transporter.verify();
+    // Increase timeout for SMTP verification
+    await transporter.verify({ timeout: 60000 }); // 60 seconds
     console.log('SMTP connection verified successfully');
     return { transporter, isEthereal: false };
   } catch (error) {
