@@ -257,9 +257,9 @@ async function sendMail({
   if (htmlContent) mailOptions.html = htmlContent;
   if (textContent) mailOptions.text = textContent;
 
-  // Add timeout to prevent hanging
+  // Add timeout to prevent hanging (increased to 60 seconds)
   const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Email sending timeout after 30 seconds')), 30000)
+    setTimeout(() => reject(new Error('Email sending timeout after 60 seconds')), 60000)
   );
   
   const sendPromise = transporter.sendMail(mailOptions);
