@@ -307,6 +307,90 @@ function getSampleJobs(jobRole) {
       email: 'careers@cloudsystems.com',
       phone: '+1-555-456-7890',
       description: `${jobRole} position available. Both W2 and C2C considered. US Citizens preferred. Remote work possible.`
+    },
+    {
+      title: `${jobRole} - Immediate Start`,
+      company: 'Global IT Staffing',
+      location: 'Chicago, IL',
+      visaStatus: 'Green Card',
+      employmentType: 'C2C',
+      postedDate: new Date().toISOString().split('T')[0],
+      source: 'Sample Data',
+      email: 'staffing@globalit.com',
+      phone: '+1-555-321-0987',
+      description: `Urgent requirement for ${jobRole}. C2C only, Green Card holders. Client interview scheduled for next week.`
+    },
+    {
+      title: `${jobRole} - Financial Services`,
+      company: 'FinTech Solutions',
+      location: 'Charlotte, NC',
+      visaStatus: 'H-1B',
+      employmentType: 'C2C',
+      postedDate: new Date().toISOString().split('T')[0],
+      source: 'Sample Data',
+      email: 'recruitment@fintechsolutions.com',
+      phone: '+1-555-654-3210',
+      description: `${jobRole} needed for banking client. C2C contract, H-1B transfer available. Financial domain experience preferred.`
+    },
+    {
+      title: `${jobRole} - Healthcare Project`,
+      company: 'MediCare IT',
+      location: 'Boston, MA',
+      visaStatus: 'EAD',
+      employmentType: 'C2C',
+      postedDate: new Date().toISOString().split('T')[0],
+      source: 'Sample Data',
+      email: 'jobs@medicareit.com',
+      phone: '+1-555-789-0123',
+      description: `${jobRole} for healthcare project. C2C, EAD/GC accepted. Healthcare IT experience is a plus. Long-term contract.`
+    },
+    {
+      title: `${jobRole} - Remote Opportunity`,
+      company: 'Remote Tech Corp',
+      location: 'Remote',
+      visaStatus: 'Green Card',
+      employmentType: 'C2C',
+      postedDate: new Date().toISOString().split('T')[0],
+      source: 'Sample Data',
+      email: 'remote@remotetech.com',
+      phone: '+1-555-234-5678',
+      description: `100% remote ${jobRole} position. C2C only, Green Card required. Eastern timezone preferred.`
+    },
+    {
+      title: `${jobRole} - Government Project`,
+      company: 'GovTech Staffing',
+      location: 'Washington DC',
+      visaStatus: 'US Citizen',
+      employmentType: 'C2C',
+      postedDate: new Date().toISOString().split('T')[0],
+      source: 'Sample Data',
+      email: 'govjobs@govtech.com',
+      phone: '+1-555-876-5432',
+      description: `${jobRole} for government project. US Citizens only, C2C. Security clearance may be required.`
+    },
+    {
+      title: `${jobRole} - E-commerce Platform`,
+      company: 'Ecom Solutions',
+      location: 'Seattle, WA',
+      visaStatus: 'H-1B',
+      employmentType: 'C2C',
+      postedDate: new Date().toISOString().split('T')[0],
+      source: 'Sample Data',
+      email: 'careers@ecomsolutions.com',
+      phone: '+1-555-109-8765',
+      description: `${jobRole} for major e-commerce platform. C2C, H-1B transfer. High-volume transaction experience needed.`
+    },
+    {
+      title: `${jobRole} - Startup Environment`,
+      company: 'TechStart Inc',
+      location: 'Austin, TX',
+      visaStatus: 'Green Card',
+      employmentType: 'C2C',
+      postedDate: new Date().toISOString().split('T')[0],
+      source: 'Sample Data',
+      email: 'hiring@techstart.com',
+      phone: '+1-555-567-8901',
+      description: `${jobRole} for fast-growing startup. C2C only, GC holders. Agile environment, rapid development cycles.`
     }
   ];
 }
