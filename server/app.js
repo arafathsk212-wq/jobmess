@@ -147,10 +147,13 @@ async function runCampaign(campaignId) {
   });
 
   const useSendGridAPI = transportDetails.useSendGridAPI;
+  const useElasticEmailAPI = transportDetails.useElasticEmailAPI;
   
   repos.appendCampaignLog(campaignId, {
     level: 'info',
-    message: transportDetails.useSendGridAPI
+    message: transportDetails.useElasticEmailAPI
+      ? 'Using Elastic Email API for email sending (HTTP-based, no SMTP required)'
+      : transportDetails.useSendGridAPI
       ? 'Using SendGrid API for email sending (HTTP-based, no SMTP required)'
       : transportDetails.isEthereal
       ? 'Using an Ethereal preview inbox because SMTP credentials are not configured.'
@@ -186,6 +189,9 @@ async function runCampaign(campaignId) {
         campaignId,
         enableTracking: true,
         useSendGridAPI: useSendGridAPI,
+        useElasticEmailAPI: useElasticEmailAPI,
+        elasticEmailApiKey: transportDetails.elasticEmailApiKey,
+        elasticEmailUser: transportDetails.elasticEmailUser,
       });
 
       console.log(`Successfully sent email to ${recipient.email}. Message ID: ${result.messageId}`);

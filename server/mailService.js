@@ -3,6 +3,7 @@ const nodemailer = require('nodemailer');
 const cheerio = require('cheerio');
 const juice = require('juice');
 const sgMail = require('@sendgrid/mail');
+const axios = require('axios');
 
 const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
 
@@ -73,6 +74,18 @@ async function createTransporter(config) {
       transporter: null, 
       isEthereal: false, 
       useSendGridAPI: true 
+    };
+  }
+
+  // Check if using Elastic Email API
+  if (config.host === 'smtp.elasticemail.com') {
+    console.log('Using Elastic Email API instead of SMTP');
+    return { 
+      transporter: null, 
+      isEthereal: false, 
+      useElasticEmailAPI: true,
+      elasticEmailApiKey: config.pass,
+      elasticEmailUser: config.user
     };
   }
 
@@ -228,6 +241,9 @@ async function sendMail({
   campaignId = null,
   enableTracking = true,
   useSendGridAPI = false,
+  useElasticEmailAPI = false,
+  elasticEmailApiKey = null,
+  elasticEmailUser = null,
 }) {
   const personalizedSubject = interpolate(subject, contactData);
   const personalizedText = bodyType === 'text' || bodyType === 'both'
@@ -260,6 +276,36 @@ async function sendMail({
       return buildTrackingLink(baseUrl, campaignId, to, match);
     });
     textContent += `\n\n${buildTrackingPixel(baseUrl, campaignId, to)}`;
+  }
+
+  // Use Elastic Email API if configured
+  if (useElasticEmailAPI) {
+    console.log(`Sending email via Elastic Email API to ${to}`);
+    const emailData = {
+      from: from || 'arafathshaik121@gmail.com',
+      to: to,
+      subject: personalizedSubject,
+    };
+    if (htmlContent) emailData.bodyHtml = htmlContent;
+    if (textContent) emailData.bodyText = textContent;
+
+    try {
+      const response = await axios.post('https://api.elasticemail.com/v2/email/send', {
+        apikey: elasticEmailApiKey,
+        ...emailData
+      });
+      console.log(`Elastic Email API response:`, response.status, response.data);
+      return {
+        success: true,
+        messageId: response.data.messageId || 'elastic-email-' + Date.now(),
+        previewUrl: null,
+        to,
+        trackingApplied,
+      };
+    } catch (error) {
+      console.error('Elastic Email API error:', error.response?.data || error.message);
+      throw error;
+    }
   }
 
   // Use SendGrid API if configured
