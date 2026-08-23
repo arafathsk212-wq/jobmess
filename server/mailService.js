@@ -281,20 +281,28 @@ async function sendMail({
   // Use Elastic Email API if configured
   if (useElasticEmailAPI) {
     console.log(`Sending email via Elastic Email API to ${to}`);
-    const emailData = {
-      from: from || 'arafathshaik121@gmail.com',
-      to: to,
-      subject: personalizedSubject,
-    };
-    if (htmlContent) emailData.bodyHtml = htmlContent;
-    if (textContent) emailData.bodyText = textContent;
+    
+    // Elastic Email API requires specific format
+    const params = new URLSearchParams();
+    params.append('apikey', elasticEmailApiKey);
+    params.append('from', from || 'arafathshaik121@gmail.com');
+    params.append('to', to);
+    params.append('subject', personalizedSubject);
+    if (htmlContent) params.append('bodyHtml', htmlContent);
+    if (textContent) params.append('bodyText', textContent);
 
     try {
-      const response = await axios.post('https://api.elasticemail.com/v2/email/send', {
-        apikey: elasticEmailApiKey,
-        ...emailData
+      const response = await axios.post('https://api.elasticemail.com/v2/email/send', params, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
       });
       console.log(`Elastic Email API response:`, response.status, response.data);
+      
+      if (response.data.success === false) {
+        throw new Error(`Elastic Email API error: ${response.data.error}`);
+      }
+      
       return {
         success: true,
         messageId: response.data.messageId || 'elastic-email-' + Date.now(),
