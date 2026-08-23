@@ -271,6 +271,15 @@ async function searchJobs(jobRole) {
 }
 
 function getSampleJobs(jobRole) {
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  const twoDaysAgo = new Date(today);
+  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+  
+  const formatDate = (date) => date.toISOString().split('T')[0];
+  
   return [
     {
       title: `${jobRole} - C2C Only`,
@@ -278,7 +287,7 @@ function getSampleJobs(jobRole) {
       location: 'Dallas, TX',
       visaStatus: 'Green Card',
       employmentType: 'C2C',
-      postedDate: new Date().toISOString().split('T')[0],
+      postedDate: formatDate(today),
       source: 'Sample Data',
       email: 'recruiter@techsolutions.com',
       phone: '+1-555-123-4567',
@@ -290,7 +299,7 @@ function getSampleJobs(jobRole) {
       location: 'New York, NY',
       visaStatus: 'H-1B',
       employmentType: 'C2C',
-      postedDate: new Date().toISOString().split('T')[0],
+      postedDate: formatDate(today),
       source: 'Sample Data',
       email: 'jobs@innovatestaffing.com',
       phone: '+1-555-987-6543',
@@ -302,7 +311,7 @@ function getSampleJobs(jobRole) {
       location: 'San Francisco, CA',
       visaStatus: 'US Citizen',
       employmentType: 'C2C',
-      postedDate: new Date().toISOString().split('T')[0],
+      postedDate: formatDate(yesterday),
       source: 'Sample Data',
       email: 'careers@cloudsystems.com',
       phone: '+1-555-456-7890',
@@ -314,7 +323,7 @@ function getSampleJobs(jobRole) {
       location: 'Chicago, IL',
       visaStatus: 'Green Card',
       employmentType: 'C2C',
-      postedDate: new Date().toISOString().split('T')[0],
+      postedDate: formatDate(today),
       source: 'Sample Data',
       email: 'staffing@globalit.com',
       phone: '+1-555-321-0987',
@@ -326,7 +335,7 @@ function getSampleJobs(jobRole) {
       location: 'Charlotte, NC',
       visaStatus: 'H-1B',
       employmentType: 'C2C',
-      postedDate: new Date().toISOString().split('T')[0],
+      postedDate: formatDate(yesterday),
       source: 'Sample Data',
       email: 'recruitment@fintechsolutions.com',
       phone: '+1-555-654-3210',
@@ -338,7 +347,7 @@ function getSampleJobs(jobRole) {
       location: 'Boston, MA',
       visaStatus: 'EAD',
       employmentType: 'C2C',
-      postedDate: new Date().toISOString().split('T')[0],
+      postedDate: formatDate(twoDaysAgo),
       source: 'Sample Data',
       email: 'jobs@medicareit.com',
       phone: '+1-555-789-0123',
@@ -350,7 +359,7 @@ function getSampleJobs(jobRole) {
       location: 'Remote',
       visaStatus: 'Green Card',
       employmentType: 'C2C',
-      postedDate: new Date().toISOString().split('T')[0],
+      postedDate: formatDate(today),
       source: 'Sample Data',
       email: 'remote@remotetech.com',
       phone: '+1-555-234-5678',
@@ -362,7 +371,7 @@ function getSampleJobs(jobRole) {
       location: 'Washington DC',
       visaStatus: 'US Citizen',
       employmentType: 'C2C',
-      postedDate: new Date().toISOString().split('T')[0],
+      postedDate: formatDate(yesterday),
       source: 'Sample Data',
       email: 'govjobs@govtech.com',
       phone: '+1-555-876-5432',
@@ -374,7 +383,7 @@ function getSampleJobs(jobRole) {
       location: 'Seattle, WA',
       visaStatus: 'H-1B',
       employmentType: 'C2C',
-      postedDate: new Date().toISOString().split('T')[0],
+      postedDate: formatDate(twoDaysAgo),
       source: 'Sample Data',
       email: 'careers@ecomsolutions.com',
       phone: '+1-555-109-8765',
@@ -386,7 +395,7 @@ function getSampleJobs(jobRole) {
       location: 'Austin, TX',
       visaStatus: 'Green Card',
       employmentType: 'C2C',
-      postedDate: new Date().toISOString().split('T')[0],
+      postedDate: formatDate(today),
       source: 'Sample Data',
       email: 'hiring@techstart.com',
       phone: '+1-555-567-8901',

@@ -10,7 +10,7 @@ const db = new Database(dbPath);
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
 
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 function runMigrations() {
   const userRow = db
@@ -104,6 +104,24 @@ function runMigrations() {
       CREATE INDEX idx_logs_campaign ON campaign_logs(campaign_id, timestamp);
       CREATE INDEX idx_sends_campaign ON campaign_sends(campaign_id);
       CREATE INDEX idx_events_campaign ON tracking_events(campaign_id, event_type);
+      CREATE TABLE jobs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        company TEXT NOT NULL,
+        location TEXT NOT NULL,
+        visa_status TEXT NOT NULL,
+        employment_type TEXT NOT NULL,
+        posted_date TEXT NOT NULL,
+        source TEXT NOT NULL,
+        email TEXT,
+        phone TEXT,
+        description TEXT,
+        job_hash TEXT UNIQUE NOT NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+      CREATE INDEX idx_jobs_date ON jobs(posted_date);
+      CREATE INDEX idx_jobs_hash ON jobs(job_hash);
     `);
     db.prepare('INSERT INTO schema_version (version) VALUES (?)').run(SCHEMA_VERSION);
   } else {
@@ -146,6 +164,30 @@ function runMigrations() {
         CREATE INDEX IF NOT EXISTS idx_events_campaign ON tracking_events(campaign_id, event_type);
       `);
       current = 3;
+      db.prepare('UPDATE schema_version SET version = ?').run(current);
+    }
+    if (current < 4) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS jobs (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT NOT NULL,
+          company TEXT NOT NULL,
+          location TEXT NOT NULL,
+          visa_status TEXT NOT NULL,
+          employment_type TEXT NOT NULL,
+          posted_date TEXT NOT NULL,
+          source TEXT NOT NULL,
+          email TEXT,
+          phone TEXT,
+          description TEXT,
+          job_hash TEXT UNIQUE NOT NULL,
+          created_at TEXT NOT NULL DEFAULT (datetime('now')),
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_jobs_date ON jobs(posted_date);
+        CREATE INDEX IF NOT EXISTS idx_jobs_hash ON jobs(job_hash);
+      `);
+      current = 4;
       db.prepare('UPDATE schema_version SET version = ?').run(current);
     }
   }

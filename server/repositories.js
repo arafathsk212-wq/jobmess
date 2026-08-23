@@ -1,4 +1,5 @@
 const { db, jsonParse } = require('./db');
+const crypto = require('crypto');
 
 function getLinkedInSession(userId) {
   const row = db.prepare('SELECT * FROM linkedin_sessions WHERE user_id = ? ORDER BY id DESC LIMIT 1').get(userId);
@@ -30,6 +31,106 @@ function saveLinkedInSession(userId, { accessToken, refreshToken, tokenExpiresAt
 
 function clearLinkedInSession(userId) {
   db.prepare('DELETE FROM linkedin_sessions WHERE user_id = ?').run(userId);
+}
+
+function generateJobHash(job) {
+  const hashString = `${job.title}-${job.company}-${job.location}-${job.visaStatus}-${job.employmentType}`;
+  return crypto.createHash('md5').update(hashString).digest('hex');
+}
+
+function saveJob(job) {
+  const jobHash = generateJobHash(job);
+  const postedDate = new Date().toISOString().split('T')[0]; // Always use current date
+  
+  try {
+    db.prepare(`
+      INSERT OR REPLACE INTO jobs 
+      (title, company, location, visa_status, employment_type, posted_date, source, email, phone, description, job_hash, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+    `).run(
+      job.title,
+      job.company,
+      job.location,
+      job.visaStatus,
+      job.employmentType,
+      postedDate,
+      job.source,
+      job.email || null,
+      job.phone || null,
+      job.description || null,
+      jobHash
+    );
+    return true;
+  } catch (error) {
+    console.error('Error saving job:', error);
+    return false;
+  }
+}
+
+function getJobs(daysBack = 7) {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+  const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
+  
+  const rows = db.prepare(`
+    SELECT * FROM jobs 
+    WHERE posted_date >= ? 
+    ORDER BY posted_date DESC, created_at DESC
+  `).all(cutoffDateStr);
+  
+  return rows.map(row => ({
+    id: row.id,
+    title: row.title,
+    company: row.company,
+    location: row.location,
+    visaStatus: row.visa_status,
+    employmentType: row.employment_type,
+    postedDate: row.posted_date,
+    source: row.source,
+    email: row.email,
+    phone: row.phone,
+    description: row.description,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  }));
+}
+
+function getJobsByRole(jobRole, daysBack = 7) {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+  const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
+  
+  const rows = db.prepare(`
+    SELECT * FROM jobs 
+    WHERE posted_date >= ? AND title LIKE ?
+    ORDER BY posted_date DESC, created_at DESC
+  `).all(cutoffDateStr, `%${jobRole}%`);
+  
+  return rows.map(row => ({
+    id: row.id,
+    title: row.title,
+    company: row.company,
+    location: row.location,
+    visaStatus: row.visa_status,
+    employmentType: row.employment_type,
+    postedDate: row.posted_date,
+    source: row.source,
+    email: row.email,
+    phone: row.phone,
+    description: row.description,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  }));
+}
+
+function deleteOldJobs(daysToKeep = 30) {
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
+  const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
+  
+  const result = db.prepare('DELETE FROM jobs WHERE posted_date < ?').run(cutoffDateStr);
+  console.log(`Deleted ${result.changes} old jobs older than ${daysToKeep} days`);
+  return result.changes;
 }
 
 function recordImport(userId, { id, fileName, totalRecipients, validRecipients, invalidRecipients }) {
@@ -227,6 +328,11 @@ module.exports = {
   getLinkedInSession,
   saveLinkedInSession,
   clearLinkedInSession,
+  generateJobHash,
+  saveJob,
+  getJobs,
+  getJobsByRole,
+  deleteOldJobs,
   recordImport,
   listCampaigns,
   getCampaignById,
@@ -236,7 +342,6 @@ module.exports = {
   appendCampaignLog,
   updateSend,
   incrementTracking,
-  recordTrackingEvent,
   getSend,
   listCampaignSends,
   deleteCampaign,

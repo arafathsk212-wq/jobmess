@@ -15,6 +15,7 @@ const { validateEmailBatch, createTransporter, sendMail, decodeTrackingPayload }
 const CampaignScheduler = require('./scheduler');
 const repos = require('./repositories');
 const { searchJobs } = require('./jobScraper');
+const jobScheduler = require('./jobScheduler');
 
 const app = express();
 const server = http.createServer(app);
@@ -369,12 +370,37 @@ app.post('/api/jobs/search', authRequired, async (req, res) => {
   }
   
   try {
-    console.log(`Starting job search for: ${jobRole}`);
-    const jobs = await searchJobs(jobRole);
+    console.log(`Searching database for jobs: ${jobRole}`);
+    // Search database for jobs matching the role
+    const jobs = repos.getJobsByRole(jobRole, 7); // Get jobs from last 7 days
     
-    res.json({ jobs });
+    if (jobs.length === 0) {
+      // If no jobs in database, trigger a fresh search
+      console.log('No jobs found in database, triggering fresh search');
+      const freshJobs = await searchJobs(jobRole);
+      
+      // Save fresh jobs to database
+      for (const job of freshJobs) {
+        repos.saveJob(job);
+      }
+      
+      res.json({ jobs: freshJobs });
+    } else {
+      console.log(`Found ${jobs.length} jobs in database`);
+      res.json({ jobs });
+    }
   } catch (error) {
     console.error('Job search error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/jobs', authRequired, async (req, res) => {
+  try {
+    const jobs = repos.getJobs(7); // Get jobs from last 7 days
+    res.json({ jobs });
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -632,6 +658,9 @@ async function start() {
 
   await scheduler.sync();
 
+  // Start job scheduler for daily updates
+  jobScheduler.start();
+
   server.listen(config.port, () => {
     console.log('');
     console.log('============================================================');
@@ -639,6 +668,7 @@ async function start() {
     console.log(`  URL:      ${config.appBaseUrl}`);
     console.log(`  Login:    ${setup.adminUser} / ${process.env.ADMIN_PASS || 'admin123'}`);
     console.log(`  SMTP:     ${config.smtp.isConfigured ? `${config.smtp.host}:${config.smtp.port}` : 'Ethereal (preview only)'}  `);
+    console.log(`  Job Scheduler: ${jobScheduler.getStatus().isRunning ? 'Running (Daily updates at 9 AM)' : 'Stopped'}`);
     console.log('============================================================');
     console.log('');
   });
