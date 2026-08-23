@@ -511,20 +511,24 @@ async function searchJobs() {
   
   try {
     elements.searchProgress.classList.remove('hidden');
-    elements.searchProgressBar.style.width = '0%';
-    elements.searchProgressText.textContent = 'Searching LinkedIn...';
+    elements.searchProgressBar.style.width = '33%';
+    elements.searchProgressText.textContent = 'Searching job portals...';
     
     const response = await requestJson('/api/jobs/search', {
       method: 'POST',
       body: JSON.stringify({ jobRole }),
     });
     
+    elements.searchProgressBar.style.width = '66%';
+    elements.searchProgressText.textContent = 'Processing results...';
+    
     if (response.jobs && response.jobs.length > 0) {
+      elements.searchProgressBar.style.width = '100%';
       displayJobResults(response.jobs);
       showJobResultsSection();
-      showToast(`Found ${response.jobs.length} C2C job opportunities.`);
+      showToast(`Found ${response.jobs.length} job opportunities.`);
     } else {
-      showToast('No C2C jobs found matching your criteria.', true);
+      showToast('No jobs found matching your criteria.', true);
     }
     
     elements.searchProgress.classList.add('hidden');

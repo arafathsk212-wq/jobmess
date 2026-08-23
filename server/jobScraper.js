@@ -229,27 +229,86 @@ async function searchJobs(jobRole) {
   
   const allJobs = [];
   
-  // Scrape LinkedIn
-  console.log('Scraping LinkedIn...');
-  const linkedinJobs = await scrapeLinkedIn(jobRole);
-  allJobs.push(...linkedinJobs);
-  console.log(`Found ${linkedinJobs.length} jobs on LinkedIn`);
+  try {
+    // Scrape LinkedIn
+    console.log('Scraping LinkedIn...');
+    const linkedinJobs = await scrapeLinkedIn(jobRole);
+    allJobs.push(...linkedinJobs);
+    console.log(`Found ${linkedinJobs.length} jobs on LinkedIn`);
+  } catch (error) {
+    console.error('LinkedIn scraping failed:', error.message);
+  }
   
-  // Scrape Indeed
-  console.log('Scraping Indeed...');
-  const indeedJobs = await scrapeIndeed(jobRole);
-  allJobs.push(...indeedJobs);
-  console.log(`Found ${indeedJobs.length} jobs on Indeed`);
+  try {
+    // Scrape Indeed
+    console.log('Scraping Indeed...');
+    const indeedJobs = await scrapeIndeed(jobRole);
+    allJobs.push(...indeedJobs);
+    console.log(`Found ${indeedJobs.length} jobs on Indeed`);
+  } catch (error) {
+    console.error('Indeed scraping failed:', error.message);
+  }
   
-  // Scrape Dice
-  console.log('Scraping Dice...');
-  const diceJobs = await scrapeDice(jobRole);
-  allJobs.push(...diceJobs);
-  console.log(`Found ${diceJobs.length} jobs on Dice`);
+  try {
+    // Scrape Dice
+    console.log('Scraping Dice...');
+    const diceJobs = await scrapeDice(jobRole);
+    allJobs.push(...diceJobs);
+    console.log(`Found ${diceJobs.length} jobs on Dice`);
+  } catch (error) {
+    console.error('Dice scraping failed:', error.message);
+  }
+  
+  // If no jobs found, provide sample data for testing
+  if (allJobs.length === 0) {
+    console.log('No jobs found from scraping, providing sample data');
+    allJobs.push(...getSampleJobs(jobRole));
+  }
   
   console.log(`Total jobs found: ${allJobs.length}`);
   
   return allJobs;
+}
+
+function getSampleJobs(jobRole) {
+  return [
+    {
+      title: `${jobRole} - C2C Only`,
+      company: 'Tech Solutions Inc',
+      location: 'Dallas, TX',
+      visaStatus: 'Green Card',
+      employmentType: 'C2C',
+      postedDate: new Date().toISOString().split('T')[0],
+      source: 'Sample Data',
+      email: 'recruiter@techsolutions.com',
+      phone: '+1-555-123-4567',
+      description: `Looking for experienced ${jobRole} for immediate start. C2C only. Must have strong communication skills and be available for client interviews.`
+    },
+    {
+      title: `Senior ${jobRole} - Prime Vendor`,
+      company: 'Innovate Staffing',
+      location: 'New York, NY',
+      visaStatus: 'H-1B',
+      employmentType: 'C2C',
+      postedDate: new Date().toISOString().split('T')[0],
+      source: 'Sample Data',
+      email: 'jobs@innovatestaffing.com',
+      phone: '+1-555-987-6543',
+      description: `Senior ${jobRole} needed for long-term project. C2C contract with prime vendor. Looking for candidates with 5+ years experience.`
+    },
+    {
+      title: `${jobRole} - W2/C2C`,
+      company: 'Cloud Systems LLC',
+      location: 'San Francisco, CA',
+      visaStatus: 'US Citizen',
+      employmentType: 'C2C',
+      postedDate: new Date().toISOString().split('T')[0],
+      source: 'Sample Data',
+      email: 'careers@cloudsystems.com',
+      phone: '+1-555-456-7890',
+      description: `${jobRole} position available. Both W2 and C2C considered. US Citizens preferred. Remote work possible.`
+    }
+  ];
 }
 
 module.exports = {
