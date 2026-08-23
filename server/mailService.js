@@ -281,6 +281,8 @@ async function sendMail({
   // Use Elastic Email API if configured
   if (useElasticEmailAPI) {
     console.log(`Sending email via Elastic Email API to ${to}`);
+    console.log(`Email details - From: ${from}, Subject: ${personalizedSubject}`);
+    console.log(`Has HTML: ${!!htmlContent}, Has Text: ${!!textContent}`);
     
     // Elastic Email API requires specific format
     const params = new URLSearchParams();
@@ -298,6 +300,7 @@ async function sendMail({
         }
       });
       console.log(`Elastic Email API response:`, response.status, response.data);
+      console.log(`Message ID: ${response.data.data?.messageid}, Transaction ID: ${response.data.data?.transactionid}`);
       
       if (response.data.success === false) {
         throw new Error(`Elastic Email API error: ${response.data.error}`);
@@ -305,7 +308,7 @@ async function sendMail({
       
       return {
         success: true,
-        messageId: response.data.messageId || 'elastic-email-' + Date.now(),
+        messageId: response.data.data?.messageid || response.data.messageId || 'elastic-email-' + Date.now(),
         previewUrl: null,
         to,
         trackingApplied,
