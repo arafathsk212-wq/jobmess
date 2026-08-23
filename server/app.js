@@ -14,6 +14,7 @@ const auth = require('./auth');
 const { validateEmailBatch, createTransporter, sendMail, decodeTrackingPayload } = require('./mailService');
 const CampaignScheduler = require('./scheduler');
 const repos = require('./repositories');
+const { searchJobs } = require('./jobScraper');
 
 const app = express();
 const server = http.createServer(app);
@@ -368,25 +369,12 @@ app.post('/api/jobs/search', authRequired, async (req, res) => {
   }
   
   try {
-    // Placeholder for job scraping logic
-    // This will be implemented with actual job portal scraping
-    const mockJobs = [
-      {
-        title: `${jobRole} - C2C Only`,
-        company: 'Tech Solutions Inc',
-        location: 'Dallas, TX',
-        visaStatus: 'Green Card',
-        employmentType: 'C2C',
-        postedDate: '2026-08-23',
-        source: 'LinkedIn',
-        email: 'recruiter@techsolutions.com',
-        phone: '+1-555-123-4567',
-        description: `Looking for experienced ${jobRole} for immediate start. C2C only.`
-      }
-    ];
+    console.log(`Starting job search for: ${jobRole}`);
+    const jobs = await searchJobs(jobRole);
     
-    res.json({ jobs: mockJobs });
+    res.json({ jobs });
   } catch (error) {
+    console.error('Job search error:', error);
     res.status(500).json({ error: error.message });
   }
 });
