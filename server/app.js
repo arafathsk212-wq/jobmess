@@ -19,8 +19,6 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server, path: '/ws' });
 
-const pendingLinkedInStates = new Map();
-
 let jwtSecret;
 
 app.set('trust proxy', true);
@@ -342,22 +340,14 @@ app.get('/api/health', async (req, res) => {
   res.json({
     ok: true,
     uptime: process.uptime(),
-    clients: clients.size,
   });
 });
 
 app.get('/api/config/status', authRequired, async (req, res) => {
-  const linkedinSession = repos.getLinkedInSession(req.user.id);
   res.json({
     port: config.port,
     baseUrl: config.appBaseUrl,
     defaultDelayMs: config.defaultDelayMs,
-    linkedin: {
-      configured: config.linkedin.isConfigured,
-      redirectUri: config.linkedin.redirectUri,
-      scopes: config.linkedin.scopes,
-      connected: Boolean(linkedinSession),
-    },
     smtp: {
       configured: config.smtp.isConfigured,
       host: config.smtp.host || 'Not configured',
@@ -368,106 +358,48 @@ app.get('/api/config/status', authRequired, async (req, res) => {
   });
 });
 
-app.get('/api/linkedin/status', authRequired, async (req, res) => {
-  const session = repos.getLinkedInSession(req.user.id);
-  res.json({
-    configured: config.linkedin.isConfigured,
-    connected: Boolean(session),
-    profile: session ? session.profile : null,
-    connectedAt: session ? session.connectedAt : null,
-  });
-});
-
-app.get('/api/linkedin/auth', authRequired, (req, res) => {
-  if (!config.linkedin.isConfigured) {
-    res.status(400).json({
-      error: 'LinkedIn OAuth is not configured. Add client credentials to your .env file first.',
-    });
+// Job Sourcing API
+app.post('/api/jobs/search', authRequired, async (req, res) => {
+  const { jobRole } = req.body;
+  
+  if (!jobRole) {
+    res.status(400).json({ error: 'Job role is required' });
     return;
   }
-
-  const state = crypto.randomBytes(16).toString('hex');
-  pendingLinkedInStates.set(state, { userId: req.user.id, expires: Date.now() + 10 * 60 * 1000 });
-
-  const url = new URL(config.linkedin.authEndpoint);
-  url.searchParams.set('response_type', 'code');
-  url.searchParams.set('client_id', config.linkedin.clientId);
-  url.searchParams.set('redirect_uri', config.linkedin.redirectUri);
-  url.searchParams.set('state', state);
-  url.searchParams.set('scope', config.linkedin.scopes.join(' '));
-
-  res.redirect(url.toString());
-});
-
-app.get('/api/linkedin/callback', async (req, res) => {
-  const { code, state, error, error_description: errorDescription } = req.query;
-
-  if (error) {
-    res.redirect(`/?linkedin=error&message=${encodeURIComponent(String(errorDescription || error))}`);
-    return;
-  }
-
-  const entry = pendingLinkedInStates.get(String(state));
-  if (!code || !state || !entry || entry.expires < Date.now()) {
-    res.redirect('/?linkedin=error&message=Invalid%20OAuth%20state');
-    return;
-  }
-  pendingLinkedInStates.delete(String(state));
-
+  
   try {
-    const tokenResponse = await fetch(config.linkedin.tokenEndpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        code: String(code),
-        client_id: config.linkedin.clientId,
-        client_secret: config.linkedin.clientSecret,
-        redirect_uri: config.linkedin.redirectUri,
-      }),
-    });
-
-    if (!tokenResponse.ok) {
-      const message = await tokenResponse.text();
-      throw new Error(`Token exchange failed: ${message}`);
-    }
-
-    const tokens = await tokenResponse.json();
-    const userInfoResponse = await fetch(config.linkedin.userInfoEndpoint, {
-      headers: { Authorization: `Bearer ${tokens.access_token}` },
-    });
-
-    if (!userInfoResponse.ok) {
-      const message = await userInfoResponse.text();
-      throw new Error(`User info fetch failed: ${message}`);
-    }
-
-    const profile = await userInfoResponse.json();
-    repos.saveLinkedInSession(entry.userId, {
-      accessToken: tokens.access_token,
-      refreshToken: tokens.refresh_token || null,
-      tokenExpiresAt: tokens.expires_in ? new Date(Date.now() + Number(tokens.expires_in) * 1000).toISOString() : null,
-      profile,
-    });
-
-    res.redirect('/?linkedin=connected');
-  } catch (oauthError) {
-    res.redirect(`/?linkedin=error&message=${encodeURIComponent(oauthError.message)}`);
+    // Placeholder for job scraping logic
+    // This will be implemented with actual job portal scraping
+    const mockJobs = [
+      {
+        title: `${jobRole} - C2C Only`,
+        company: 'Tech Solutions Inc',
+        location: 'Dallas, TX',
+        visaStatus: 'Green Card',
+        employmentType: 'C2C',
+        postedDate: '2026-08-23',
+        source: 'LinkedIn',
+        email: 'recruiter@techsolutions.com',
+        phone: '+1-555-123-4567',
+        description: `Looking for experienced ${jobRole} for immediate start. C2C only.`
+      }
+    ];
+    
+    res.json({ jobs: mockJobs });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-});
-
-app.post('/api/linkedin/logout', authRequired, async (req, res) => {
-  repos.clearLinkedInSession(req.user.id);
-  res.json({ ok: true });
 });
 
 app.post('/api/recipients/import', authRequired, async (req, res) => {
+  const { fileName, contentBase64 } = req.body;
+  
+  if (!fileName || !contentBase64) {
+    res.status(400).json({ error: 'File name and content are required.' });
+    return;
+  }
+  
   try {
-    const { fileName, contentBase64 } = req.body;
-    if (!fileName || !contentBase64) {
-      res.status(400).json({ error: 'A file name and base64 file content are required.' });
-      return;
-    }
     const buffer = Buffer.from(contentBase64, 'base64');
     const rows = getWorkbookRows(buffer);
     const contacts = extractContacts(rows);
@@ -719,7 +651,6 @@ async function start() {
     console.log(`  URL:      ${config.appBaseUrl}`);
     console.log(`  Login:    ${setup.adminUser} / ${process.env.ADMIN_PASS || 'admin123'}`);
     console.log(`  SMTP:     ${config.smtp.isConfigured ? `${config.smtp.host}:${config.smtp.port}` : 'Ethereal (preview only)'}  `);
-    console.log(`  LinkedIn: ${config.linkedin.isConfigured ? 'Configured' : 'Add LINKEDIN_CLIENT_ID + SECRET'}`);
     console.log('============================================================');
     console.log('');
   });

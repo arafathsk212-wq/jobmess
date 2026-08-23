@@ -12,17 +12,22 @@ const elements = {
   
   // Landing page elements
   landingPage: document.getElementById('landingPage'),
-  linkedinOption: document.getElementById('linkedinOption'),
+  jobSourcingOption: document.getElementById('jobSourcingOption'),
   mailOption: document.getElementById('mailOption'),
   
-  // LinkedIn section elements
-  linkedinSection: document.getElementById('linkedinSection'),
-  backToLanding: document.getElementById('backToLanding'),
-  linkedinConnectionStatus: document.getElementById('linkedinConnectionStatus'),
-  startLinkedIn: document.getElementById('startLinkedIn'),
-  stopLinkedIn: document.getElementById('stopLinkedIn'),
-  linkedinProfile: document.getElementById('linkedinProfile'),
-  profileDetails: document.getElementById('profileDetails'),
+  // Job sourcing section elements
+  jobSourcingSection: document.getElementById('jobSourcingSection'),
+  backToLandingJob: document.getElementById('backToLandingJob'),
+  jobRoleInput: document.getElementById('jobRoleInput'),
+  searchJobs: document.getElementById('searchJobs'),
+  searchProgress: document.getElementById('searchProgress'),
+  searchProgressBar: document.getElementById('searchProgressBar'),
+  searchProgressText: document.getElementById('searchProgressText'),
+  
+  // Job results section elements
+  jobResultsSection: document.getElementById('jobResultsSection'),
+  backToJobSearch: document.getElementById('backToJobSearch'),
+  jobResultsContainer: document.getElementById('jobResultsContainer'),
   
   // Mail section elements
   mailSection: document.getElementById('mailSection'),
@@ -447,21 +452,6 @@ async function checkAuth() {
     elements.loginSection.classList.add('hidden');
     elements.dashboardSection.classList.remove('hidden');
     
-    // Check LinkedIn connection status
-    try {
-      const linkedinData = await requestJson('/api/linkedin/status');
-      state.linkedin = linkedinData;
-      if (linkedinData.connected) {
-        state.linkedinConnected = true;
-        elements.linkedinConnectionStatus.textContent = 'Connected';
-        elements.linkedinConnectionStatus.classList.remove('stopped');
-        elements.linkedinConnectionStatus.classList.add('running');
-        await loadLinkedInProfile();
-      }
-    } catch (error) {
-      // LinkedIn status check failed, but auth is still valid
-    }
-    
     return true;
   } catch (error) {
     elements.userInfo.classList.add('hidden');
@@ -484,51 +474,83 @@ function checkPrivacyPage() {
 // Navigation functions
 function showLandingPage() {
   elements.landingPage.classList.remove('hidden');
-  elements.linkedinSection.classList.add('hidden');
+  elements.jobSourcingSection.classList.add('hidden');
+  elements.jobResultsSection.classList.add('hidden');
   elements.mailSection.classList.add('hidden');
 }
 
-function showLinkedInSection() {
+function showJobSourcingSection() {
   elements.landingPage.classList.add('hidden');
-  elements.linkedinSection.classList.remove('hidden');
+  elements.jobSourcingSection.classList.remove('hidden');
+  elements.jobResultsSection.classList.add('hidden');
+  elements.mailSection.classList.add('hidden');
+}
+
+function showJobResultsSection() {
+  elements.landingPage.classList.add('hidden');
+  elements.jobSourcingSection.classList.add('hidden');
+  elements.jobResultsSection.classList.remove('hidden');
   elements.mailSection.classList.add('hidden');
 }
 
 function showMailSection() {
   elements.landingPage.classList.add('hidden');
-  elements.linkedinSection.classList.add('hidden');
+  elements.jobSourcingSection.classList.add('hidden');
+  elements.jobResultsSection.classList.add('hidden');
   elements.mailSection.classList.remove('hidden');
 }
 
-// LinkedIn functions
-async function stopLinkedInConnection() {
+// Job Sourcing functions
+async function searchJobs() {
+  const jobRole = elements.jobRoleInput.value.trim();
+  
+  if (!jobRole) {
+    showToast('Please enter a job role keyword.', true);
+    return;
+  }
+  
   try {
-    await requestJson('/api/linkedin/logout', { method: 'POST' });
-    state.linkedinConnected = false;
-    elements.linkedinConnectionStatus.textContent = 'Not Connected';
-    elements.linkedinConnectionStatus.classList.remove('running');
-    elements.linkedinConnectionStatus.classList.add('stopped');
-    elements.linkedinProfile.classList.add('hidden');
-    showToast('LinkedIn disconnected.');
+    elements.searchProgress.classList.remove('hidden');
+    elements.searchProgressBar.style.width = '0%';
+    elements.searchProgressText.textContent = 'Searching LinkedIn...';
+    
+    const response = await requestJson('/api/jobs/search', {
+      method: 'POST',
+      body: JSON.stringify({ jobRole }),
+    });
+    
+    if (response.jobs && response.jobs.length > 0) {
+      displayJobResults(response.jobs);
+      showJobResultsSection();
+      showToast(`Found ${response.jobs.length} C2C job opportunities.`);
+    } else {
+      showToast('No C2C jobs found matching your criteria.', true);
+    }
+    
+    elements.searchProgress.classList.add('hidden');
   } catch (error) {
     showToast(error.message, true);
+    elements.searchProgress.classList.add('hidden');
   }
 }
 
-async function loadLinkedInProfile() {
-  try {
-    const data = await requestJson('/api/linkedin/profile');
-    if (data.profile) {
-      elements.profileDetails.innerHTML = `
-        <p><strong>Name:</strong> ${escapeHtml(data.profile.name || 'N/A')}</p>
-        <p><strong>Email:</strong> ${escapeHtml(data.profile.email || 'N/A')}</p>
-        <p><strong>LinkedIn ID:</strong> ${escapeHtml(data.profile.id || 'N/A')}</p>
-      `;
-      elements.linkedinProfile.classList.remove('hidden');
-    }
-  } catch (error) {
-    console.error('Failed to load LinkedIn profile:', error);
-  }
+function displayJobResults(jobs) {
+  elements.jobResultsContainer.innerHTML = jobs.map(job => `
+    <div class="job-card">
+      <h3>${escapeHtml(job.title)}</h3>
+      <div class="job-details">
+        <p><strong>Company:</strong> ${escapeHtml(job.company)}</p>
+        <p><strong>Location:</strong> ${escapeHtml(job.location)}</p>
+        <p><strong>Visa Status:</strong> ${escapeHtml(job.visaStatus)}</p>
+        <p><strong>Employment Type:</strong> ${escapeHtml(job.employmentType)}</p>
+        <p><strong>Posted:</strong> ${escapeHtml(job.postedDate)}</p>
+        <p><strong>Source:</strong> ${escapeHtml(job.source)}</p>
+        ${job.email ? `<p><strong>Email:</strong> <a href="mailto:${escapeHtml(job.email)}">${escapeHtml(job.email)}</a></p>` : ''}
+        ${job.phone ? `<p><strong>Phone:</strong> <a href="tel:${escapeHtml(job.phone)}">${escapeHtml(job.phone)}</a></p>` : ''}
+        <p><strong>Description:</strong> ${escapeHtml(job.description)}</p>
+      </div>
+    </div>
+  `).join('');
 }
 
 // Email functions
@@ -676,27 +698,7 @@ async function pollCampaignProgress(campaignId, totalEmails) {
   }
 }
 
-function handleLinkedInQueryString() {
-  const params = new URLSearchParams(window.location.search);
-  const linkedinStatus = params.get('linkedin');
-  const message = params.get('message');
-
-  if (linkedinStatus === 'connected') {
-    showToast('LinkedIn connected successfully.');
-  }
-
-  if (linkedinStatus === 'error') {
-    showToast(message || 'LinkedIn authorization failed.', true);
-  }
-
-  if (linkedinStatus) {
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
-}
-
 async function initialize() {
-  handleLinkedInQueryString();
-  
   // Check if user is on privacy page
   if (checkPrivacyPage()) {
     return;
@@ -713,11 +715,12 @@ async function initialize() {
 }
 
 // Event listeners for new UI
-elements.linkedinOption.addEventListener('click', showLinkedInSection);
+elements.jobSourcingOption.addEventListener('click', showJobSourcingSection);
 elements.mailOption.addEventListener('click', showMailSection);
-elements.backToLanding.addEventListener('click', showLandingPage);
+elements.backToLandingJob.addEventListener('click', showLandingPage);
+elements.backToJobSearch.addEventListener('click', showJobSourcingSection);
 elements.backToLandingMail.addEventListener('click', showLandingPage);
-elements.stopLinkedIn.addEventListener('click', stopLinkedInConnection);
+elements.searchJobs.addEventListener('click', searchJobs);
 elements.proceedToUpload.addEventListener('click', proceedToUpload);
 elements.validateEmails.addEventListener('click', validateEmails);
 elements.sendBulkEmails.addEventListener('click', sendBulkEmails);

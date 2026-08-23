@@ -16,6 +16,47 @@
   --shadow: 0 10px 30px rgba(0,0,0,0.35);
 }
 
+.job-card {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.job-card h3 {
+  margin: 0 0 12px 0;
+  color: var(--accent);
+}
+
+.job-details {
+  display: grid;
+  gap: 8px;
+}
+
+.job-details p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.job-details strong {
+  color: var(--text);
+}
+
+.job-details a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.job-details a:hover {
+  text-decoration: underline;
+}
+
+.job-results-container {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
 * { box-sizing: border-box; }
 
 html, body, #root { height: 100%; }

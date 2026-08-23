@@ -10,10 +10,10 @@
   <div class="app-shell">
     <header class="hero">
       <div>
-        <p class="eyebrow">Campaign Studio</p>
-        <h1>LinkedIn & Email Campaigns</h1>
+        <p class="eyebrow">Bench Sales Recruiter</p>
+        <h1>IT Staffing & Job Sourcing</h1>
         <p class="hero-copy">
-          Send messages to LinkedIn connections or bulk emails to your contacts
+          Find C2C job opportunities for IT consultants across multiple job portals
         </p>
       </div>
       <div id="toast" class="toast hidden" aria-live="polite"></div>
@@ -92,51 +92,65 @@
         <!-- Landing Page with Options -->
         <div id="landingPage" class="landing-section">
           <div class="option-cards">
-            <div class="option-card" id="linkedinOption">
-              <div class="option-icon">🔗</div>
-              <h2>LinkedIn</h2>
-              <p>Connect your LinkedIn profile for authentication</p>
+            <div class="option-card" id="jobSourcingOption">
+              <div class="option-icon">�</div>
+              <h2>Job Sourcing</h2>
+              <p>Find C2C job opportunities across multiple job portals</p>
               <button class="primary-btn">Select</button>
             </div>
             <div class="option-card" id="mailOption">
               <div class="option-icon">📧</div>
               <h2>Email</h2>
-              <p>Send bulk emails to your contacts</p>
+              <p>Send bulk emails to recruiters and contacts</p>
               <button class="primary-btn">Select</button>
             </div>
           </div>
         </div>
 
-        <!-- LinkedIn Section -->
-        <div id="linkedinSection" class="linkedin-section hidden">
+        <!-- Job Sourcing Section -->
+        <div id="jobSourcingSection" class="job-sourcing-section hidden">
           <div class="panel panel-wide">
             <div class="panel-header">
               <div>
-                <h2>LinkedIn Integration</h2>
-                <p class="muted-text">LinkedIn OAuth authentication for profile access</p>
+                <h2>Job Sourcing</h2>
+                <p class="muted-text">Find C2C job opportunities for IT consultants</p>
               </div>
-              <button id="backToLanding" class="secondary-btn">Back</button>
+              <button id="backToLandingJob" class="secondary-btn">Back</button>
             </div>
 
-            <div class="linkedin-info">
-              <div class="info-card">
-                <h3>⚠️ LinkedIn Messaging Limitation</h3>
-                <p>LinkedIn's messaging API requires special business-level permissions that are not available to individual developers. The current OAuth integration only provides basic profile access.</p>
-                <p><strong>Alternative:</strong> Use the Email feature to contact your LinkedIn connections via email instead.</p>
-              </div>
+            <div class="field-group">
+              <label class="field-label" for="jobRoleInput">Job Role Keyword</label>
+              <input id="jobRoleInput" type="text" placeholder="e.g., Java Developer, .NET Developer, DevOps Engineer" />
+              <p class="help-text">Enter the job role you want to search for</p>
+            </div>
 
-              <div class="linkedin-status">
-                <span id="linkedinConnectionStatus" class="status-pill stopped">Not Connected</span>
-                <div class="connection-controls">
-                  <a id="startLinkedIn" class="primary-btn" href="/api/linkedin/auth">Connect LinkedIn</a>
-                  <button id="stopLinkedIn" class="danger-btn">Disconnect</button>
-                </div>
-              </div>
+            <div class="toolbar">
+              <button id="searchJobs" class="primary-btn">Search Jobs</button>
+            </div>
 
-              <div class="linkedin-profile hidden" id="linkedinProfile">
-                <h3>Your LinkedIn Profile</h3>
-                <div id="profileDetails"></div>
+            <div id="searchProgress" class="progress-section hidden">
+              <h3>Searching Job Portals...</h3>
+              <div class="progress-bar">
+                <div id="searchProgressBar" class="progress-fill" style="width: 0%"></div>
               </div>
+              <p id="searchProgressText">Searching LinkedIn...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Job Results Section -->
+        <div id="jobResultsSection" class="job-results-section hidden">
+          <div class="panel panel-wide">
+            <div class="panel-header">
+              <div>
+                <h2>Job Search Results</h2>
+                <p class="muted-text">C2C job opportunities matching your criteria</p>
+              </div>
+              <button id="backToJobSearch" class="secondary-btn">Back to Search</button>
+            </div>
+
+            <div id="jobResultsContainer" class="job-results-container">
+              <!-- Job results will be dynamically inserted here -->
             </div>
           </div>
         </div>
