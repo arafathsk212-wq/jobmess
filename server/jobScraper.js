@@ -342,12 +342,198 @@ async function scrapeDice(jobRole) {
   }
 }
 
+async function scrapeMonster(jobRole) {
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+    });
+
+    const page = await browser.newPage();
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    await page.setViewport({ width: 1920, height: 1080 });
+
+    const searchUrl = `https://www.monster.com/jobs/search/?q=${encodeURIComponent(jobRole + ' c2c')}`;
+    console.log(`Monster URL: ${searchUrl}`);
+    
+    await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+    await page.waitForTimeout(3000);
+
+    const content = await page.content();
+    const $ = cheerio.load(content);
+
+    const jobs = [];
+    $('.card, .job-card, [data-testid="job-card"]').each((index, element) => {
+      const $el = $(element);
+      const title = $el.find('h3, .job-title, [data-testid="job-title"]').text().trim();
+      const company = $el.find('.company-name, [data-testid="company-name"]').text().trim();
+      const location = $el.find('.location, [data-testid="location"]').text().trim();
+      const description = $el.find('.job-description, [data-testid="job-description"]').text().trim();
+      
+      if (title && company) {
+        const email = extractEmail(description);
+        const phone = extractPhone(description);
+        const isC2CJob = isC2C(description);
+        const visaStatus = getVisaStatus(description);
+        
+        if (isC2CJob || hasVisaRequirement(description)) {
+          jobs.push({
+            title,
+            company,
+            location,
+            visaStatus,
+            employmentType: isC2CJob ? 'C2C' : 'Not Specified',
+            postedDate: new Date().toISOString().split('T')[0],
+            source: 'Monster',
+            email,
+            phone,
+            description: description.substring(0, 500)
+          });
+        }
+      }
+    });
+
+    console.log(`Monster scraping found ${jobs.length} jobs`);
+    return jobs;
+  } catch (error) {
+    console.error('Monster scraping error:', error.message);
+    return [];
+  } finally {
+    if (browser) await browser.close();
+  }
+}
+
+async function scrapeCareerBuilder(jobRole) {
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+    });
+
+    const page = await browser.newPage();
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    await page.setViewport({ width: 1920, height: 1080 });
+
+    const searchUrl = `https://www.careerbuilder.com/jobs?q=${encodeURIComponent(jobRole + ' c2c')}`;
+    console.log(`CareerBuilder URL: ${searchUrl}`);
+    
+    await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+    await page.waitForTimeout(3000);
+
+    const content = await page.content();
+    const $ = cheerio.load(content);
+
+    const jobs = [];
+    $('.data-results, .job-listing, .job-card').each((index, element) => {
+      const $el = $(element);
+      const title = $el.find('.job-title, h2, [data-testid="job-title"]').text().trim();
+      const company = $el.find('.company, [data-testid="company-name"]').text().trim();
+      const location = $el.find('.location, [data-testid="location"]').text().trim();
+      const description = $el.find('.job-description, [data-testid="job-description"]').text().trim();
+      
+      if (title && company) {
+        const email = extractEmail(description);
+        const phone = extractPhone(description);
+        const isC2CJob = isC2C(description);
+        const visaStatus = getVisaStatus(description);
+        
+        if (isC2CJob || hasVisaRequirement(description)) {
+          jobs.push({
+            title,
+            company,
+            location,
+            visaStatus,
+            employmentType: isC2CJob ? 'C2C' : 'Not Specified',
+            postedDate: new Date().toISOString().split('T')[0],
+            source: 'CareerBuilder',
+            email,
+            phone,
+            description: description.substring(0, 500)
+          });
+        }
+      }
+    });
+
+    console.log(`CareerBuilder scraping found ${jobs.length} jobs`);
+    return jobs;
+  } catch (error) {
+    console.error('CareerBuilder scraping error:', error.message);
+    return [];
+  } finally {
+    if (browser) await browser.close();
+  }
+}
+
+async function scrapeSimplyHired(jobRole) {
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+    });
+
+    const page = await browser.newPage();
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    await page.setViewport({ width: 1920, height: 1080 });
+
+    const searchUrl = `https://www.simplyhired.com/search?q=${encodeURIComponent(jobRole + ' c2c')}`;
+    console.log(`SimplyHired URL: ${searchUrl}`);
+    
+    await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+    await page.waitForTimeout(3000);
+
+    const content = await page.content();
+    const $ = cheerio.load(content);
+
+    const jobs = [];
+    $('.card, .job-card, .job-listing').each((index, element) => {
+      const $el = $(element);
+      const title = $el.find('.job-title, h2, [data-testid="job-title"]').text().trim();
+      const company = $el.find('.company-name, [data-testid="company-name"]').text().trim();
+      const location = $el.find('.location, [data-testid="location"]').text().trim();
+      const description = $el.find('.job-description, [data-testid="job-description"]').text().trim();
+      
+      if (title && company) {
+        const email = extractEmail(description);
+        const phone = extractPhone(description);
+        const isC2CJob = isC2C(description);
+        const visaStatus = getVisaStatus(description);
+        
+        if (isC2CJob || hasVisaRequirement(description)) {
+          jobs.push({
+            title,
+            company,
+            location,
+            visaStatus,
+            employmentType: isC2CJob ? 'C2C' : 'Not Specified',
+            postedDate: new Date().toISOString().split('T')[0],
+            source: 'SimplyHired',
+            email,
+            phone,
+            description: description.substring(0, 500)
+          });
+        }
+      }
+    });
+
+    console.log(`SimplyHired scraping found ${jobs.length} jobs`);
+    return jobs;
+  } catch (error) {
+    console.error('SimplyHired scraping error:', error.message);
+    return [];
+  } finally {
+    if (browser) await browser.close();
+  }
+}
+
 async function searchJobs(jobRole) {
   console.log(`Starting job search for: ${jobRole}`);
   
   const allJobs = [];
   
-  // Try RSS feeds first (more reliable)
+  // Try RSS feeds first (most reliable)
   try {
     console.log('Fetching from RSS feeds...');
     const rssJobs = await fetchRSSJobs(jobRole);
@@ -385,6 +571,33 @@ async function searchJobs(jobRole) {
     console.error('Dice scraping failed:', error.message);
   }
   
+  try {
+    console.log('Scraping Monster...');
+    const monsterJobs = await scrapeMonster(jobRole);
+    allJobs.push(...monsterJobs);
+    console.log(`Found ${monsterJobs.length} jobs on Monster`);
+  } catch (error) {
+    console.error('Monster scraping failed:', error.message);
+  }
+  
+  try {
+    console.log('Scraping CareerBuilder...');
+    const careerBuilderJobs = await scrapeCareerBuilder(jobRole);
+    allJobs.push(...careerBuilderJobs);
+    console.log(`Found ${careerBuilderJobs.length} jobs on CareerBuilder`);
+  } catch (error) {
+    console.error('CareerBuilder scraping failed:', error.message);
+  }
+  
+  try {
+    console.log('Scraping SimplyHired...');
+    const simplyHiredJobs = await scrapeSimplyHired(jobRole);
+    allJobs.push(...simplyHiredJobs);
+    console.log(`Found ${simplyHiredJobs.length} jobs on SimplyHired`);
+  } catch (error) {
+    console.error('SimplyHired scraping failed:', error.message);
+  }
+  
   // Only use sample data if absolutely no jobs found
   if (allJobs.length === 0) {
     console.log('No jobs found from any source, providing sample data');
@@ -410,6 +623,36 @@ async function fetchRSSJobs(jobRole) {
       name: 'Dice RSS',
       url: `https://www.dice.com/feed/rss?q=${encodeURIComponent(jobRole)}`,
       parser: parseDiceRSS
+    },
+    {
+      name: 'SimplyHired RSS',
+      url: `https://www.simplyhired.com/job-feed/rss?q=${encodeURIComponent(jobRole + ' c2c')}`,
+      parser: parseGenericRSS
+    },
+    {
+      name: 'ZipRecruiter RSS',
+      url: `https://www.ziprecruiter.com/feed/jobs?q=${encodeURIComponent(jobRole)}`,
+      parser: parseGenericRSS
+    },
+    {
+      name: 'CareerBuilder RSS',
+      url: `https://www.careerbuilder.com/jobs/rss?q=${encodeURIComponent(jobRole)}`,
+      parser: parseGenericRSS
+    },
+    {
+      name: 'Glassdoor RSS',
+      url: `https://www.glassdoor.com/job-listing/jobs.htm?suggestCount=0&suggestChosen=false&clicks=searchClicked&includeHistory=true&keyword=${encodeURIComponent(jobRole)}`,
+      parser: parseGenericRSS
+    },
+    {
+      name: 'Monster RSS',
+      url: `https://www.monster.com/rss?q=${encodeURIComponent(jobRole)}`,
+      parser: parseGenericRSS
+    },
+    {
+      name: 'Jooble RSS',
+      url: `https://jooble.org/rss?q=${encodeURIComponent(jobRole + ' c2c')}`,
+      parser: parseGenericRSS
     }
   ];
   
@@ -424,7 +667,7 @@ async function fetchRSSJobs(jobRole) {
       });
       
       const feedData = await rssParser.parseString(response.data);
-      const feedJobs = feed.parser(feedData, jobRole);
+      const feedJobs = feed.parser(feedData, jobRole, feed.name);
       jobs.push(...feedJobs);
       console.log(`Found ${feedJobs.length} jobs from ${feed.name}`);
     } catch (error) {
@@ -435,7 +678,7 @@ async function fetchRSSJobs(jobRole) {
   return jobs;
 }
 
-function parseIndeedRSS(feed, jobRole) {
+function parseIndeedRSS(feed, jobRole, sourceName = 'Indeed RSS') {
   const jobs = [];
   
   if (!feed.items) return jobs;
@@ -452,7 +695,7 @@ function parseIndeedRSS(feed, jobRole) {
         visaStatus: getVisaStatus(description),
         employmentType: 'C2C',
         postedDate: new Date(item.pubDate).toISOString().split('T')[0],
-        source: 'Indeed RSS',
+        source: sourceName,
         email: extractEmail(description),
         phone: extractPhone(description),
         description: description.substring(0, 500),
@@ -464,7 +707,7 @@ function parseIndeedRSS(feed, jobRole) {
   return jobs;
 }
 
-function parseDiceRSS(feed, jobRole) {
+function parseDiceRSS(feed, jobRole, sourceName = 'Dice RSS') {
   const jobs = [];
   
   if (!feed.items) return jobs;
@@ -481,7 +724,36 @@ function parseDiceRSS(feed, jobRole) {
         visaStatus: getVisaStatus(description),
         employmentType: 'C2C',
         postedDate: new Date(item.pubDate).toISOString().split('T')[0],
-        source: 'Dice RSS',
+        source: sourceName,
+        email: extractEmail(description),
+        phone: extractPhone(description),
+        description: description.substring(0, 500),
+        link: item.link
+      });
+    }
+  }
+  
+  return jobs;
+}
+
+function parseGenericRSS(feed, jobRole, sourceName) {
+  const jobs = [];
+  
+  if (!feed.items) return jobs;
+  
+  for (const item of feed.items) {
+    const description = item.contentSnippet || item.description || item.content || '';
+    const title = item.title || '';
+    
+    if (isC2C(description) || hasVisaRequirement(description) || title.toLowerCase().includes('c2c')) {
+      jobs.push({
+        title: title,
+        company: extractCompanyFromTitle(title),
+        location: extractLocationFromDescription(description),
+        visaStatus: getVisaStatus(description),
+        employmentType: 'C2C',
+        postedDate: new Date(item.pubDate).toISOString().split('T')[0],
+        source: sourceName,
         email: extractEmail(description),
         phone: extractPhone(description),
         description: description.substring(0, 500),
