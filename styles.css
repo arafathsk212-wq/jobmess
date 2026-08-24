@@ -889,20 +889,30 @@ body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   background-image: url('img/Gemini_Generated_Image_59ypes59ypes59yp.png');
   background-size: cover;
-  background-position: center;
+  background-position: center 30%;
   background-attachment: fixed;
   background-repeat: no-repeat;
   min-height: 100vh;
   color: #333;
-  animation: gradientShift 15s ease infinite;
+  animation: imageFloat 20s ease-in-out infinite;
 }
 
-@keyframes gradientShift {
+@keyframes imageFloat {
   0%, 100% {
-    background-position: 0% 50%;
+    background-position: center 30%;
+    transform: scale(1);
+  }
+  25% {
+    background-position: center 35%;
+    transform: scale(1.02);
   }
   50% {
-    background-position: 100% 50%;
+    background-position: center 32%;
+    transform: scale(1.01);
+  }
+  75% {
+    background-position: center 28%;
+    transform: scale(1.03);
   }
 }
 
