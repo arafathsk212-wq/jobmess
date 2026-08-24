@@ -19,6 +19,77 @@ const c2cKeywords = ['c2c', 'corp to corp', 'corptocorp', '1099', 'independent c
 const visaKeywords = ['green card', 'gc', 'usc', 'us citizen', 'h1b', 'e-ad', 'ead', 'opt', 'cpt'];
 const visaRequirements = ['green card', 'gc', 'usc', 'us citizen'];
 
+/**
+ * AI-Enhanced Job Analysis
+ * This system analyzes every job post comprehensively to extract metadata
+ * without filtering. All jobs are shown regardless of visa type, C2C/W2 mentions,
+ * or contact information. Contact details are optional metadata for manual follow-up.
+ */
+
+function analyzeJobDescription(description) {
+  const analysis = {
+    hasC2C: false,
+    hasW2: false,
+    visaStatus: 'Not Specified',
+    employmentType: 'Not Specified',
+    hasEmail: false,
+    hasPhone: false,
+    hasContactInfo: false,
+    skills: [],
+    keywords: []
+  };
+  
+  const lowerDesc = description.toLowerCase();
+  
+  // Analyze employment type
+  if (c2cKeywords.some(keyword => lowerDesc.includes(keyword))) {
+    analysis.hasC2C = true;
+    analysis.employmentType = 'C2C';
+  }
+  if (lowerDesc.includes('w2') || lowerDesc.includes('w-2')) {
+    analysis.hasW2 = true;
+    if (analysis.employmentType === 'Not Specified') {
+      analysis.employmentType = 'W2';
+    }
+  }
+  
+  // Analyze visa status
+  if (lowerDesc.includes('green card') || lowerDesc.includes('gc')) {
+    analysis.visaStatus = 'Green Card';
+  } else if (lowerDesc.includes('usc') || lowerDesc.includes('us citizen')) {
+    analysis.visaStatus = 'US Citizen';
+  } else if (lowerDesc.includes('h1b')) {
+    analysis.visaStatus = 'H-1B';
+  } else if (lowerDesc.includes('e-ad') || lowerDesc.includes('ead')) {
+    analysis.visaStatus = 'EAD';
+  } else if (lowerDesc.includes('opt') || lowerDesc.includes('cpt')) {
+    analysis.visaStatus = 'CPT/OPT';
+  }
+  
+  // Analyze contact information
+  const email = extractEmail(description);
+  const phone = extractPhone(description);
+  analysis.hasEmail = !!email;
+  analysis.hasPhone = !!phone;
+  analysis.hasContactInfo = analysis.hasEmail || analysis.hasPhone;
+  
+  // Extract common IT skills
+  const skillPatterns = [
+    'javascript', 'java', 'python', 'react', 'angular', 'vue', 'node', 'sql',
+    'aws', 'azure', 'gcp', 'docker', 'kubernetes', 'devops', 'agile', 'scrum',
+    'git', 'ci/cd', 'microservices', 'api', 'rest', 'graphql', 'mongodb',
+    'postgresql', 'mysql', 'redis', 'elasticsearch', 'kafka', 'spark', 'hadoop'
+  ];
+  
+  skillPatterns.forEach(skill => {
+    if (lowerDesc.includes(skill)) {
+      analysis.skills.push(skill);
+    }
+  });
+  
+  return analysis;
+}
+
 function extractEmail(text) {
   const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
   const matches = text.match(emailRegex);
@@ -115,25 +186,24 @@ async function scrapeLinkedIn(jobRole) {
                            $el.find('.show-more-less-html').text().trim();
         
         if (title && company) {
-          const email = extractEmail(description);
-          const phone = extractPhone(description);
-          const isC2CJob = isC2C(description);
-          const visaStatus = getVisaStatus(description);
+          const analysis = analyzeJobDescription(description);
           
-          if (isC2CJob || hasVisaRequirement(description)) {
-            jobs.push({
-              title,
-              company,
-              location,
-              visaStatus,
-              employmentType: isC2CJob ? 'C2C' : 'Not Specified',
-              postedDate: new Date().toISOString().split('T')[0],
-              source: 'LinkedIn',
-              email,
-              phone,
-              description: description.substring(0, 500)
-            });
-          }
+          // Show all jobs regardless of visa type or C2C mention
+          // AI analyzes job details for metadata but doesn't filter
+          jobs.push({
+            title,
+            company,
+            location,
+            visaStatus: analysis.visaStatus,
+            employmentType: analysis.employmentType,
+            postedDate: new Date().toISOString().split('T')[0],
+            source: 'LinkedIn',
+            email: extractEmail(description) || 'Not Provided',
+            phone: extractPhone(description) || 'Not Provided',
+            description: description.substring(0, 500),
+            hasContactInfo: analysis.hasContactInfo,
+            skills: analysis.skills
+          });
         }
       });
       
@@ -179,7 +249,7 @@ async function scrapeIndeed(jobRole) {
       'Upgrade-Insecure-Requests': '1'
     });
 
-    const searchUrl = `https://www.indeed.com/jobs?q=${encodeURIComponent(jobRole + ' c2c')}&fromage=1`;
+    const searchUrl = `https://www.indeed.com/jobs?q=${encodeURIComponent(jobRole)}&fromage=1`;
     console.log(`Indeed URL: ${searchUrl}`);
     
     await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 45000 });
@@ -211,25 +281,24 @@ async function scrapeIndeed(jobRole) {
                            $el.find('[data-testid="job-snippet"]').text().trim();
         
         if (title && company) {
-          const email = extractEmail(description);
-          const phone = extractPhone(description);
-          const isC2CJob = isC2C(description);
-          const visaStatus = getVisaStatus(description);
+          const analysis = analyzeJobDescription(description);
           
-          if (isC2CJob || hasVisaRequirement(description)) {
-            jobs.push({
-              title,
-              company,
-              location,
-              visaStatus,
-              employmentType: isC2CJob ? 'C2C' : 'Not Specified',
-              postedDate: new Date().toISOString().split('T')[0],
-              source: 'Indeed',
-              email,
-              phone,
-              description: description.substring(0, 500)
-            });
-          }
+          // Show all jobs regardless of visa type or C2C mention
+          // AI analyzes job details for metadata but doesn't filter
+          jobs.push({
+            title,
+            company,
+            location,
+            visaStatus: analysis.visaStatus,
+            employmentType: analysis.employmentType,
+            postedDate: new Date().toISOString().split('T')[0],
+            source: 'Indeed',
+            email: extractEmail(description) || 'Not Provided',
+            phone: extractPhone(description) || 'Not Provided',
+            description: description.substring(0, 500),
+            hasContactInfo: analysis.hasContactInfo,
+            skills: analysis.skills
+          });
         }
       });
       
@@ -307,25 +376,24 @@ async function scrapeDice(jobRole) {
                            $el.find('[data-testid="job-description"]').text().trim();
         
         if (title && company) {
-          const email = extractEmail(description);
-          const phone = extractPhone(description);
-          const isC2CJob = isC2C(description);
-          const visaStatus = getVisaStatus(description);
+          const analysis = analyzeJobDescription(description);
           
-          if (isC2CJob || hasVisaRequirement(description)) {
-            jobs.push({
-              title,
-              company,
-              location,
-              visaStatus,
-              employmentType: isC2CJob ? 'C2C' : 'Not Specified',
-              postedDate: new Date().toISOString().split('T')[0],
-              source: 'Dice',
-              email,
-              phone,
-              description: description.substring(0, 500)
-            });
-          }
+          // Show all jobs regardless of visa type or C2C mention
+          // AI analyzes job details for metadata but doesn't filter
+          jobs.push({
+            title,
+            company,
+            location,
+            visaStatus: analysis.visaStatus,
+            employmentType: analysis.employmentType,
+            postedDate: new Date().toISOString().split('T')[0],
+            source: 'Dice',
+            email: extractEmail(description) || 'Not Provided',
+            phone: extractPhone(description) || 'Not Provided',
+            description: description.substring(0, 500),
+            hasContactInfo: analysis.hasContactInfo,
+            skills: analysis.skills
+          });
         }
       });
       
@@ -354,7 +422,7 @@ async function scrapeMonster(jobRole) {
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
     await page.setViewport({ width: 1920, height: 1080 });
 
-    const searchUrl = `https://www.monster.com/jobs/search/?q=${encodeURIComponent(jobRole + ' c2c')}`;
+    const searchUrl = `https://www.monster.com/jobs/search/?q=${encodeURIComponent(jobRole)}`;
     console.log(`Monster URL: ${searchUrl}`);
     
     await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
@@ -372,25 +440,24 @@ async function scrapeMonster(jobRole) {
       const description = $el.find('.job-description, [data-testid="job-description"]').text().trim();
       
       if (title && company) {
-        const email = extractEmail(description);
-        const phone = extractPhone(description);
-        const isC2CJob = isC2C(description);
-        const visaStatus = getVisaStatus(description);
+        const analysis = analyzeJobDescription(description);
         
-        if (isC2CJob || hasVisaRequirement(description)) {
-          jobs.push({
-            title,
-            company,
-            location,
-            visaStatus,
-            employmentType: isC2CJob ? 'C2C' : 'Not Specified',
-            postedDate: new Date().toISOString().split('T')[0],
-            source: 'Monster',
-            email,
-            phone,
-            description: description.substring(0, 500)
-          });
-        }
+        // Show all jobs regardless of visa type or C2C mention
+        // AI analyzes job details for metadata but doesn't filter
+        jobs.push({
+          title,
+          company,
+          location,
+          visaStatus: analysis.visaStatus,
+          employmentType: analysis.employmentType,
+          postedDate: new Date().toISOString().split('T')[0],
+          source: 'Monster',
+          email: extractEmail(description) || 'Not Provided',
+          phone: extractPhone(description) || 'Not Provided',
+          description: description.substring(0, 500),
+          hasContactInfo: analysis.hasContactInfo,
+          skills: analysis.skills
+        });
       }
     });
 
@@ -416,7 +483,7 @@ async function scrapeCareerBuilder(jobRole) {
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
     await page.setViewport({ width: 1920, height: 1080 });
 
-    const searchUrl = `https://www.careerbuilder.com/jobs?q=${encodeURIComponent(jobRole + ' c2c')}`;
+    const searchUrl = `https://www.careerbuilder.com/jobs?q=${encodeURIComponent(jobRole)}`;
     console.log(`CareerBuilder URL: ${searchUrl}`);
     
     await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
@@ -434,25 +501,24 @@ async function scrapeCareerBuilder(jobRole) {
       const description = $el.find('.job-description, [data-testid="job-description"]').text().trim();
       
       if (title && company) {
-        const email = extractEmail(description);
-        const phone = extractPhone(description);
-        const isC2CJob = isC2C(description);
-        const visaStatus = getVisaStatus(description);
+        const analysis = analyzeJobDescription(description);
         
-        if (isC2CJob || hasVisaRequirement(description)) {
-          jobs.push({
-            title,
-            company,
-            location,
-            visaStatus,
-            employmentType: isC2CJob ? 'C2C' : 'Not Specified',
-            postedDate: new Date().toISOString().split('T')[0],
-            source: 'CareerBuilder',
-            email,
-            phone,
-            description: description.substring(0, 500)
-          });
-        }
+        // Show all jobs regardless of visa type or C2C mention
+        // AI analyzes job details for metadata but doesn't filter
+        jobs.push({
+          title,
+          company,
+          location,
+          visaStatus: analysis.visaStatus,
+          employmentType: analysis.employmentType,
+          postedDate: new Date().toISOString().split('T')[0],
+          source: 'CareerBuilder',
+          email: extractEmail(description) || 'Not Provided',
+          phone: extractPhone(description) || 'Not Provided',
+          description: description.substring(0, 500),
+          hasContactInfo: analysis.hasContactInfo,
+          skills: analysis.skills
+        });
       }
     });
 
@@ -478,7 +544,7 @@ async function scrapeSimplyHired(jobRole) {
     await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
     await page.setViewport({ width: 1920, height: 1080 });
 
-    const searchUrl = `https://www.simplyhired.com/search?q=${encodeURIComponent(jobRole + ' c2c')}`;
+    const searchUrl = `https://www.simplyhired.com/search?q=${encodeURIComponent(jobRole)}`;
     console.log(`SimplyHired URL: ${searchUrl}`);
     
     await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
@@ -496,25 +562,24 @@ async function scrapeSimplyHired(jobRole) {
       const description = $el.find('.job-description, [data-testid="job-description"]').text().trim();
       
       if (title && company) {
-        const email = extractEmail(description);
-        const phone = extractPhone(description);
-        const isC2CJob = isC2C(description);
-        const visaStatus = getVisaStatus(description);
+        const analysis = analyzeJobDescription(description);
         
-        if (isC2CJob || hasVisaRequirement(description)) {
-          jobs.push({
-            title,
-            company,
-            location,
-            visaStatus,
-            employmentType: isC2CJob ? 'C2C' : 'Not Specified',
-            postedDate: new Date().toISOString().split('T')[0],
-            source: 'SimplyHired',
-            email,
-            phone,
-            description: description.substring(0, 500)
-          });
-        }
+        // Show all jobs regardless of visa type or C2C mention
+        // AI analyzes job details for metadata but doesn't filter
+        jobs.push({
+          title,
+          company,
+          location,
+          visaStatus: analysis.visaStatus,
+          employmentType: analysis.employmentType,
+          postedDate: new Date().toISOString().split('T')[0],
+          source: 'SimplyHired',
+          email: extractEmail(description) || 'Not Provided',
+          phone: extractPhone(description) || 'Not Provided',
+          description: description.substring(0, 500),
+          hasContactInfo: analysis.hasContactInfo,
+          skills: analysis.skills
+        });
       }
     });
 
@@ -616,7 +681,7 @@ async function fetchRSSJobs(jobRole) {
   const rssFeeds = [
     {
       name: 'Indeed RSS',
-      url: `https://www.indeed.com/rss?q=${encodeURIComponent(jobRole + ' c2c')}&fromage=1`,
+      url: `https://www.indeed.com/rss?q=${encodeURIComponent(jobRole)}&fromage=1`,
       parser: parseIndeedRSS
     },
     {
@@ -626,7 +691,7 @@ async function fetchRSSJobs(jobRole) {
     },
     {
       name: 'SimplyHired RSS',
-      url: `https://www.simplyhired.com/job-feed/rss?q=${encodeURIComponent(jobRole + ' c2c')}`,
+      url: `https://www.simplyhired.com/job-feed/rss?q=${encodeURIComponent(jobRole)}`,
       parser: parseGenericRSS
     },
     {
@@ -651,7 +716,7 @@ async function fetchRSSJobs(jobRole) {
     },
     {
       name: 'Jooble RSS',
-      url: `https://jooble.org/rss?q=${encodeURIComponent(jobRole + ' c2c')}`,
+      url: `https://jooble.org/rss?q=${encodeURIComponent(jobRole)}`,
       parser: parseGenericRSS
     }
   ];
@@ -687,21 +752,25 @@ function parseIndeedRSS(feed, jobRole, sourceName = 'Indeed RSS') {
     const description = item.contentSnippet || item.description || '';
     const title = item.title || '';
     
-    if (isC2C(description) || hasVisaRequirement(description) || title.toLowerCase().includes('c2c')) {
-      jobs.push({
-        title: title,
-        company: extractCompanyFromTitle(title),
-        location: extractLocationFromDescription(description),
-        visaStatus: getVisaStatus(description),
-        employmentType: 'C2C',
-        postedDate: new Date(item.pubDate).toISOString().split('T')[0],
-        source: sourceName,
-        email: extractEmail(description),
-        phone: extractPhone(description),
-        description: description.substring(0, 500),
-        link: item.link
-      });
-    }
+    // Show all jobs regardless of visa type or C2C mention
+    // AI analyzes job details for metadata but doesn't filter
+    const analysis = analyzeJobDescription(description);
+    
+    jobs.push({
+      title: title,
+      company: extractCompanyFromTitle(title),
+      location: extractLocationFromDescription(description),
+      visaStatus: analysis.visaStatus,
+      employmentType: analysis.employmentType,
+      postedDate: new Date(item.pubDate).toISOString().split('T')[0],
+      source: sourceName,
+      email: extractEmail(description) || 'Not Provided',
+      phone: extractPhone(description) || 'Not Provided',
+      description: description.substring(0, 500),
+      link: item.link,
+      hasContactInfo: analysis.hasContactInfo,
+      skills: analysis.skills
+    });
   }
   
   return jobs;
@@ -716,21 +785,25 @@ function parseDiceRSS(feed, jobRole, sourceName = 'Dice RSS') {
     const description = item.contentSnippet || item.description || '';
     const title = item.title || '';
     
-    if (isC2C(description) || hasVisaRequirement(description) || title.toLowerCase().includes('c2c')) {
-      jobs.push({
-        title: title,
-        company: extractCompanyFromTitle(title),
-        location: extractLocationFromDescription(description),
-        visaStatus: getVisaStatus(description),
-        employmentType: 'C2C',
-        postedDate: new Date(item.pubDate).toISOString().split('T')[0],
-        source: sourceName,
-        email: extractEmail(description),
-        phone: extractPhone(description),
-        description: description.substring(0, 500),
-        link: item.link
-      });
-    }
+    // Show all jobs regardless of visa type or C2C mention
+    // AI analyzes job details for metadata but doesn't filter
+    const analysis = analyzeJobDescription(description);
+    
+    jobs.push({
+      title: title,
+      company: extractCompanyFromTitle(title),
+      location: extractLocationFromDescription(description),
+      visaStatus: analysis.visaStatus,
+      employmentType: analysis.employmentType,
+      postedDate: new Date(item.pubDate).toISOString().split('T')[0],
+      source: sourceName,
+      email: extractEmail(description) || 'Not Provided',
+      phone: extractPhone(description) || 'Not Provided',
+      description: description.substring(0, 500),
+      link: item.link,
+      hasContactInfo: analysis.hasContactInfo,
+      skills: analysis.skills
+    });
   }
   
   return jobs;
@@ -745,21 +818,25 @@ function parseGenericRSS(feed, jobRole, sourceName) {
     const description = item.contentSnippet || item.description || item.content || '';
     const title = item.title || '';
     
-    if (isC2C(description) || hasVisaRequirement(description) || title.toLowerCase().includes('c2c')) {
-      jobs.push({
-        title: title,
-        company: extractCompanyFromTitle(title),
-        location: extractLocationFromDescription(description),
-        visaStatus: getVisaStatus(description),
-        employmentType: 'C2C',
-        postedDate: new Date(item.pubDate).toISOString().split('T')[0],
-        source: sourceName,
-        email: extractEmail(description),
-        phone: extractPhone(description),
-        description: description.substring(0, 500),
-        link: item.link
-      });
-    }
+    // Show all jobs regardless of visa type or C2C mention
+    // AI analyzes job details for metadata but doesn't filter
+    const analysis = analyzeJobDescription(description);
+    
+    jobs.push({
+      title: title,
+      company: extractCompanyFromTitle(title),
+      location: extractLocationFromDescription(description),
+      visaStatus: analysis.visaStatus,
+      employmentType: analysis.employmentType,
+      postedDate: new Date(item.pubDate).toISOString().split('T')[0],
+      source: sourceName,
+      email: extractEmail(description) || 'Not Provided',
+      phone: extractPhone(description) || 'Not Provided',
+      description: description.substring(0, 500),
+      link: item.link,
+      hasContactInfo: analysis.hasContactInfo,
+      skills: analysis.skills
+    });
   }
   
   return jobs;
