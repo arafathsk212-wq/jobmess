@@ -786,8 +786,8 @@ input:focus, textarea:focus, select:focus {
 }
 
 .info-card {
-  background: rgba(245, 158, 11, 0.1);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
   border-radius: 8px;
   padding: 20px;
 }
@@ -1002,6 +1002,29 @@ button {
   animation: buttonFloat 3s ease-in-out infinite;
 }
 
+.primary-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  animation: buttonFloat 3s ease-in-out infinite;
+}
+
+.primary-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.primary-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
 @keyframes buttonFloat {
   0%, 100% {
     transform: translateY(0);
@@ -1011,25 +1034,41 @@ button {
   }
 }
 
-button:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+.secondary-btn {
+  background: rgba(102, 126, 234, 0.15);
+  color: #667eea;
+  border: 2px solid rgba(102, 126, 234, 0.5);
+  padding: 12px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+  animation: buttonFloat 3s ease-in-out infinite;
 }
 
-button:active {
+.secondary-btn:hover {
+  background: rgba(102, 126, 234, 0.25);
+  color: #667eea;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.25);
+}
+
+.secondary-btn:active {
   transform: translateY(0) scale(0.98);
 }
 
 /* Section Styles */
 section {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(15px);
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(8px);
   border-radius: 20px;
   padding: 40px;
   margin: 20px 0;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   animation: fadeInUp 0.8s ease-out;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 @keyframes fadeInUp {
@@ -1066,12 +1105,12 @@ h1, h2, h3 {
 }
 
 .login-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(15px);
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(8px);
   border-radius: 20px;
   padding: 40px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 @keyframes zoomIn {
@@ -1139,16 +1178,16 @@ input:focus {
 }
 
 .option-card {
-  background: rgba(102, 126, 234, 0.85);
-  backdrop-filter: blur(15px);
+  background: rgba(102, 126, 234, 0.5);
+  backdrop-filter: blur(8px);
   color: white;
-  padding: 30px;
-  border-radius: 15px;
+  border-radius: 20px;
+  padding: 40px;
   cursor: pointer;
   transition: all 0.4s ease;
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
   animation: cardHover 4s ease-in-out infinite;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 @keyframes cardHover {
@@ -1199,26 +1238,26 @@ input:focus {
 }
 
 .panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(15px);
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(8px);
   border-radius: 20px;
   padding: 40px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 /* Progress Container */
 .progress-container {
   margin: 20px 0;
   padding: 20px;
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(102, 126, 234, 0.08);
   border-radius: 15px;
   animation: pulse 2s ease-in-out infinite;
 }
 
 .progress-bar {
   height: 8px;
-  background: rgba(102, 126, 234, 0.2);
+  background: rgba(102, 126, 234, 0.15);
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 10px;
@@ -1251,14 +1290,14 @@ input:focus {
 }
 
 .job-card {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(15px);
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(8px);
   border-radius: 15px;
   padding: 25px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
   transition: all 0.4s ease;
   animation: cardEntrance 0.6s ease-out;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 @keyframes cardEntrance {
@@ -1334,7 +1373,7 @@ input:focus {
 .email-progress {
   margin-top: 20px;
   padding: 20px;
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(102, 126, 234, 0.08);
   border-radius: 15px;
   animation: fadeIn 0.5s ease;
 }
@@ -1376,9 +1415,9 @@ input:focus {
 
 /* Back Button */
 .back-button {
-  background: rgba(102, 126, 234, 0.2);
+  background: rgba(102, 126, 234, 0.15);
   color: #667eea;
-  border: 2px solid #667eea;
+  border: 2px solid rgba(102, 126, 234, 0.5);
   padding: 10px 20px;
   border-radius: 20px;
   cursor: pointer;
@@ -1403,12 +1442,12 @@ input:focus {
 }
 
 .privacy-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(15px);
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(8px);
   border-radius: 20px;
   padding: 40px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .privacy-section h2 {
