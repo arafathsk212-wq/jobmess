@@ -5,7 +5,7 @@ class JobScheduler {
   constructor() {
     this.isRunning = false;
     this.intervalId = null;
-    this.dailyUpdateHour = 9; // 9 AM daily
+    this.updateIntervalMinutes = 5; // Update every 5 minutes
   }
 
   start() {
@@ -18,59 +18,44 @@ class JobScheduler {
     console.log('Starting job scheduler...');
 
     // Run immediately on startup
-    this.runDailyJobUpdate();
+    this.runJobUpdate();
 
-    // Schedule daily updates
-    this.scheduleNextUpdate();
+    // Schedule frequent updates
+    this.scheduleUpdates();
   }
 
-  scheduleNextUpdate() {
+  scheduleUpdates() {
     if (this.intervalId) {
       clearInterval(this.intervalId);
     }
 
-    // Calculate time until next daily update
-    const now = new Date();
-    const nextUpdate = new Date();
-    nextUpdate.setHours(this.dailyUpdateHour, 0, 0, 0);
+    console.log(`Scheduling job updates every ${this.updateIntervalMinutes} minutes`);
 
-    // If today's update time has passed, schedule for tomorrow
-    if (now >= nextUpdate) {
-      nextUpdate.setDate(nextUpdate.getDate() + 1);
-    }
-
-    const timeUntilUpdate = nextUpdate - now;
-    console.log(`Next job update scheduled for: ${nextUpdate.toISOString()}`);
-
-    // Set timeout for next update
-    setTimeout(() => {
-      this.runDailyJobUpdate();
-      // Then set up recurring daily updates
-      this.intervalId = setInterval(() => {
-        this.runDailyJobUpdate();
-      }, 24 * 60 * 60 * 1000); // 24 hours
-    }, timeUntilUpdate);
+    // Set up recurring updates
+    this.intervalId = setInterval(() => {
+      this.runJobUpdate();
+    }, this.updateIntervalMinutes * 60 * 1000); // Convert minutes to milliseconds
   }
 
-  async runDailyJobUpdate() {
-    console.log('Starting daily job update...');
-    const today = new Date().toISOString().split('T')[0];
-    console.log(`Updating jobs for date: ${today}`);
+  async runJobUpdate() {
+    console.log('Starting job update...');
+    const now = new Date();
+    const timestamp = now.toISOString();
+    console.log(`Updating jobs at: ${timestamp}`);
 
     try {
-      // Common job roles to search for
-      const jobRoles = [
-        'Java Developer',
-        '.NET Developer',
-        'DevOps Engineer',
-        'Data Engineer',
-        'Cloud Engineer',
-        'QA Engineer',
-        'Full Stack Developer',
-        'Backend Developer',
-        'Frontend Developer',
-        'Software Engineer'
+      // Rotate through different job roles each update to avoid rate limiting
+      const jobRoleSets = [
+        ['Java Developer', '.NET Developer', 'DevOps Engineer'],
+        ['Data Engineer', 'Cloud Engineer', 'QA Engineer'],
+        ['Full Stack Developer', 'Backend Developer', 'Frontend Developer'],
+        ['Software Engineer', 'React Developer', 'Python Developer'],
+        ['AWS Engineer', 'Azure Engineer', 'GCP Engineer']
       ];
+
+      // Use current minute to determine which set to search
+      const setIndex = Math.floor(now.getMinutes() / 5) % jobRoleSets.length;
+      const jobRoles = jobRoleSets[setIndex];
 
       let totalJobsSaved = 0;
 
@@ -91,14 +76,14 @@ class JobScheduler {
         }
       }
 
-      console.log(`Daily job update completed. Total jobs saved: ${totalJobsSaved}`);
+      console.log(`Job update completed. Total jobs saved: ${totalJobsSaved}`);
 
-      // Clean up old jobs (older than 30 days)
-      const deletedCount = repos.deleteOldJobs(30);
+      // Clean up old jobs more frequently (older than 7 days)
+      const deletedCount = repos.deleteOldJobs(7);
       console.log(`Cleaned up ${deletedCount} old jobs`);
 
     } catch (error) {
-      console.error('Error in daily job update:', error);
+      console.error('Error in job update:', error);
     }
   }
 
@@ -114,7 +99,8 @@ class JobScheduler {
   getStatus() {
     return {
       isRunning: this.isRunning,
-      dailyUpdateHour: this.dailyUpdateHour
+      updateIntervalMinutes: this.updateIntervalMinutes,
+      nextUpdate: this.isRunning ? 'Every 5 minutes' : 'Stopped'
     };
   }
 }

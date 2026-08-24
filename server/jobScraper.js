@@ -271,137 +271,70 @@ async function searchJobs(jobRole) {
 }
 
 function getSampleJobs(jobRole) {
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
+  const now = new Date();
+  const jobs = [];
   
-  const twoDaysAgo = new Date(today);
-  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+  // Generate jobs with timestamps spread over the last few hours to simulate frequent updates
+  const timeOffsets = [0, 1, 2, 3, 4, 5, 10, 15, 30, 60]; // minutes ago
   
-  const formatDate = (date) => date.toISOString().split('T')[0];
-  
-  return [
-    {
-      title: `${jobRole} - C2C Only`,
-      company: 'Tech Solutions Inc',
-      location: 'Dallas, TX',
-      visaStatus: 'Green Card',
-      employmentType: 'C2C',
-      postedDate: formatDate(today),
-      source: 'Sample Data',
-      email: 'recruiter@techsolutions.com',
-      phone: '+1-555-123-4567',
-      description: `Looking for experienced ${jobRole} for immediate start. C2C only. Must have strong communication skills and be available for client interviews.`
-    },
-    {
-      title: `Senior ${jobRole} - Prime Vendor`,
-      company: 'Innovate Staffing',
-      location: 'New York, NY',
-      visaStatus: 'H-1B',
-      employmentType: 'C2C',
-      postedDate: formatDate(today),
-      source: 'Sample Data',
-      email: 'jobs@innovatestaffing.com',
-      phone: '+1-555-987-6543',
-      description: `Senior ${jobRole} needed for long-term project. C2C contract with prime vendor. Looking for candidates with 5+ years experience.`
-    },
-    {
-      title: `${jobRole} - W2/C2C`,
-      company: 'Cloud Systems LLC',
-      location: 'San Francisco, CA',
-      visaStatus: 'US Citizen',
-      employmentType: 'C2C',
-      postedDate: formatDate(yesterday),
-      source: 'Sample Data',
-      email: 'careers@cloudsystems.com',
-      phone: '+1-555-456-7890',
-      description: `${jobRole} position available. Both W2 and C2C considered. US Citizens preferred. Remote work possible.`
-    },
-    {
-      title: `${jobRole} - Immediate Start`,
-      company: 'Global IT Staffing',
-      location: 'Chicago, IL',
-      visaStatus: 'Green Card',
-      employmentType: 'C2C',
-      postedDate: formatDate(today),
-      source: 'Sample Data',
-      email: 'staffing@globalit.com',
-      phone: '+1-555-321-0987',
-      description: `Urgent requirement for ${jobRole}. C2C only, Green Card holders. Client interview scheduled for next week.`
-    },
-    {
-      title: `${jobRole} - Financial Services`,
-      company: 'FinTech Solutions',
-      location: 'Charlotte, NC',
-      visaStatus: 'H-1B',
-      employmentType: 'C2C',
-      postedDate: formatDate(yesterday),
-      source: 'Sample Data',
-      email: 'recruitment@fintechsolutions.com',
-      phone: '+1-555-654-3210',
-      description: `${jobRole} needed for banking client. C2C contract, H-1B transfer available. Financial domain experience preferred.`
-    },
-    {
-      title: `${jobRole} - Healthcare Project`,
-      company: 'MediCare IT',
-      location: 'Boston, MA',
-      visaStatus: 'EAD',
-      employmentType: 'C2C',
-      postedDate: formatDate(twoDaysAgo),
-      source: 'Sample Data',
-      email: 'jobs@medicareit.com',
-      phone: '+1-555-789-0123',
-      description: `${jobRole} for healthcare project. C2C, EAD/GC accepted. Healthcare IT experience is a plus. Long-term contract.`
-    },
-    {
-      title: `${jobRole} - Remote Opportunity`,
-      company: 'Remote Tech Corp',
-      location: 'Remote',
-      visaStatus: 'Green Card',
-      employmentType: 'C2C',
-      postedDate: formatDate(today),
-      source: 'Sample Data',
-      email: 'remote@remotetech.com',
-      phone: '+1-555-234-5678',
-      description: `100% remote ${jobRole} position. C2C only, Green Card required. Eastern timezone preferred.`
-    },
-    {
-      title: `${jobRole} - Government Project`,
-      company: 'GovTech Staffing',
-      location: 'Washington DC',
-      visaStatus: 'US Citizen',
-      employmentType: 'C2C',
-      postedDate: formatDate(yesterday),
-      source: 'Sample Data',
-      email: 'govjobs@govtech.com',
-      phone: '+1-555-876-5432',
-      description: `${jobRole} for government project. US Citizens only, C2C. Security clearance may be required.`
-    },
-    {
-      title: `${jobRole} - E-commerce Platform`,
-      company: 'Ecom Solutions',
-      location: 'Seattle, WA',
-      visaStatus: 'H-1B',
-      employmentType: 'C2C',
-      postedDate: formatDate(twoDaysAgo),
-      source: 'Sample Data',
-      email: 'careers@ecomsolutions.com',
-      phone: '+1-555-109-8765',
-      description: `${jobRole} for major e-commerce platform. C2C, H-1B transfer. High-volume transaction experience needed.`
-    },
-    {
-      title: `${jobRole} - Startup Environment`,
-      company: 'TechStart Inc',
-      location: 'Austin, TX',
-      visaStatus: 'Green Card',
-      employmentType: 'C2C',
-      postedDate: formatDate(today),
-      source: 'Sample Data',
-      email: 'hiring@techstart.com',
-      phone: '+1-555-567-8901',
-      description: `${jobRole} for fast-growing startup. C2C only, GC holders. Agile environment, rapid development cycles.`
-    }
+  const companies = [
+    { name: 'Tech Solutions Inc', location: 'Dallas, TX', visa: 'Green Card' },
+    { name: 'Innovate Staffing', location: 'New York, NY', visa: 'H-1B' },
+    { name: 'Cloud Systems LLC', location: 'San Francisco, CA', visa: 'US Citizen' },
+    { name: 'Global IT Staffing', location: 'Chicago, IL', visa: 'Green Card' },
+    { name: 'FinTech Solutions', location: 'Charlotte, NC', visa: 'H-1B' },
+    { name: 'MediCare IT', location: 'Boston, MA', visa: 'EAD' },
+    { name: 'Remote Tech Corp', location: 'Remote', visa: 'Green Card' },
+    { name: 'GovTech Staffing', location: 'Washington DC', visa: 'US Citizen' },
+    { name: 'Ecom Solutions', location: 'Seattle, WA', visa: 'H-1B' },
+    { name: 'TechStart Inc', location: 'Austin, TX', visa: 'Green Card' }
   ];
+
+  const descriptions = [
+    `Looking for experienced ${jobRole} for immediate start. C2C only. Must have strong communication skills and be available for client interviews.`,
+    `Senior ${jobRole} needed for long-term project. C2C contract with prime vendor. Looking for candidates with 5+ years experience.`,
+    `${jobRole} position available. Both W2 and C2C considered. US Citizens preferred. Remote work possible.`,
+    `Urgent requirement for ${jobRole}. C2C only, Green Card holders. Client interview scheduled for next week.`,
+    `${jobRole} needed for banking client. C2C contract, H-1B transfer available. Financial domain experience preferred.`,
+    `${jobRole} for healthcare project. C2C, EAD/GC accepted. Healthcare IT experience is a plus. Long-term contract.`,
+    `100% remote ${jobRole} position. C2C only, Green Card required. Eastern timezone preferred.`,
+    `${jobRole} for government project. US Citizens only, C2C. Security clearance may be required.`,
+    `${jobRole} for major e-commerce platform. C2C, H-1B transfer. High-volume transaction experience needed.`,
+    `${jobRole} for fast-growing startup. C2C only, GC holders. Agile environment, rapid development cycles.`
+  ];
+
+  const titles = [
+    `${jobRole} - C2C Only`,
+    `Senior ${jobRole} - Prime Vendor`,
+    `${jobRole} - W2/C2C`,
+    `${jobRole} - Immediate Start`,
+    `${jobRole} - Financial Services`,
+    `${jobRole} - Healthcare Project`,
+    `${jobRole} - Remote Opportunity`,
+    `${jobRole} - Government Project`,
+    `${jobRole} - E-commerce Platform`,
+    `${jobRole} - Startup Environment`
+  ];
+
+  for (let i = 0; i < 10; i++) {
+    const jobTime = new Date(now.getTime() - timeOffsets[i] * 60 * 1000);
+    const postedDate = jobTime.toISOString().split('T')[0];
+    
+    jobs.push({
+      title: titles[i],
+      company: companies[i].name,
+      location: companies[i].location,
+      visaStatus: companies[i].visa,
+      employmentType: 'C2C',
+      postedDate: postedDate,
+      source: 'Sample Data',
+      email: `recruiter@${companies[i].name.toLowerCase().replace(/\s+/g, '')}.com`,
+      phone: `+1-555-${String(100 + i * 111).padStart(3, '0')}-${String(1000 + i * 1111).padStart(4, '0')}`,
+      description: descriptions[i]
+    });
+  }
+
+  return jobs;
 }
 
 module.exports = {

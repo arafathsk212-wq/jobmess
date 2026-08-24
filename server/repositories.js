@@ -43,23 +43,38 @@ function saveJob(job) {
   const postedDate = new Date().toISOString().split('T')[0]; // Always use current date
   
   try {
-    db.prepare(`
-      INSERT OR REPLACE INTO jobs 
-      (title, company, location, visa_status, employment_type, posted_date, source, email, phone, description, job_hash, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-    `).run(
-      job.title,
-      job.company,
-      job.location,
-      job.visaStatus,
-      job.employmentType,
-      postedDate,
-      job.source,
-      job.email || null,
-      job.phone || null,
-      job.description || null,
-      jobHash
-    );
+    // Check if job already exists
+    const existing = db.prepare('SELECT id FROM jobs WHERE job_hash = ?').get(jobHash);
+    
+    if (existing) {
+      // Update existing job with new timestamp
+      db.prepare(`
+        UPDATE jobs 
+        SET posted_date = ?, updated_at = datetime('now')
+        WHERE job_hash = ?
+      `).run(postedDate, jobHash);
+      console.log(`Updated existing job: ${job.title}`);
+    } else {
+      // Insert new job
+      db.prepare(`
+        INSERT INTO jobs 
+        (title, company, location, visa_status, employment_type, posted_date, source, email, phone, description, job_hash, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+      `).run(
+        job.title,
+        job.company,
+        job.location,
+        job.visaStatus,
+        job.employmentType,
+        postedDate,
+        job.source,
+        job.email || null,
+        job.phone || null,
+        job.description || null,
+        jobHash
+      );
+      console.log(`Saved new job: ${job.title}`);
+    }
     return true;
   } catch (error) {
     console.error('Error saving job:', error);

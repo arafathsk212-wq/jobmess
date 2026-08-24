@@ -405,6 +405,34 @@ app.get('/api/jobs', authRequired, async (req, res) => {
   }
 });
 
+app.post('/api/jobs/refresh', authRequired, async (req, res) => {
+  try {
+    console.log('Manual job refresh triggered');
+    
+    // Trigger immediate job update
+    const jobRoles = ['Java Developer', '.NET Developer', 'DevOps Engineer'];
+    let totalJobsSaved = 0;
+    
+    for (const jobRole of jobRoles) {
+      const jobs = await searchJobs(jobRole);
+      for (const job of jobs) {
+        const saved = repos.saveJob(job);
+        if (saved) totalJobsSaved++;
+      }
+    }
+    
+    const updatedJobs = repos.getJobs(1); // Get jobs from last day
+    res.json({ 
+      message: 'Jobs refreshed successfully',
+      jobsSaved: totalJobsSaved,
+      recentJobs: updatedJobs
+    });
+  } catch (error) {
+    console.error('Error refreshing jobs:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.post('/api/recipients/import', authRequired, async (req, res) => {
   const { fileName, contentBase64 } = req.body;
   
@@ -668,7 +696,7 @@ async function start() {
     console.log(`  URL:      ${config.appBaseUrl}`);
     console.log(`  Login:    ${setup.adminUser} / ${process.env.ADMIN_PASS || 'admin123'}`);
     console.log(`  SMTP:     ${config.smtp.isConfigured ? `${config.smtp.host}:${config.smtp.port}` : 'Ethereal (preview only)'}  `);
-    console.log(`  Job Scheduler: ${jobScheduler.getStatus().isRunning ? 'Running (Daily updates at 9 AM)' : 'Stopped'}`);
+    console.log(`  Job Scheduler: ${jobScheduler.getStatus().isRunning ? 'Running (Updates every 5 minutes)' : 'Stopped'}`);
     console.log('============================================================');
     console.log('');
   });
