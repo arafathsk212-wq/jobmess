@@ -665,13 +665,12 @@ async function searchJobs(jobRole) {
   
   console.log(`Total jobs found from all sources: ${allJobs.length}`);
   
-  // Only use sample data if absolutely no jobs found
+  // No fallback to sample data - only return real jobs
   if (allJobs.length === 0) {
-    console.log('No jobs found from any source, providing sample data');
-    allJobs.push(...getSampleJobs(jobRole));
+    console.log('No real jobs found from any source');
   }
   
-  console.log(`Total jobs to return: ${allJobs.length}`);
+  console.log(`Total real jobs to return: ${allJobs.length}`);
   
   return allJobs;
 }
@@ -679,69 +678,63 @@ async function searchJobs(jobRole) {
 async function fetchRSSJobs(jobRole) {
   const jobs = [];
   
-  // RSS feeds from various job boards
+  // RSS feeds from various job boards - using more reliable feeds
   const rssFeeds = [
     {
       name: 'Indeed RSS',
-      url: `https://www.indeed.com/rss?q=${encodeURIComponent(jobRole)}&fromage=1`,
+      url: `https://rss.indeed.com/rss?q=${encodeURIComponent(jobRole)}&l=United%20States&fromage=1`,
       parser: parseIndeedRSS
     },
     {
       name: 'Dice RSS',
-      url: `https://www.dice.com/feed/rss?q=${encodeURIComponent(jobRole)}`,
+      url: `https://www.dice.com/feed/jobs?q=${encodeURIComponent(jobRole)}&country=US`,
       parser: parseDiceRSS
     },
     {
       name: 'SimplyHired RSS',
-      url: `https://www.simplyhired.com/job-feed/rss?q=${encodeURIComponent(jobRole)}`,
+      url: `https://www.simplyhired.com/job-feed/rss?q=${encodeURIComponent(jobRole)}&l=United%20States`,
       parser: parseGenericRSS
     },
     {
       name: 'ZipRecruiter RSS',
-      url: `https://www.ziprecruiter.com/feed/jobs?q=${encodeURIComponent(jobRole)}`,
-      parser: parseGenericRSS
-    },
-    {
-      name: 'CareerBuilder RSS',
-      url: `https://www.careerbuilder.com/jobs/rss?q=${encodeURIComponent(jobRole)}`,
-      parser: parseGenericRSS
-    },
-    {
-      name: 'Glassdoor RSS',
-      url: `https://www.glassdoor.com/job-listing/jobs.htm?suggestCount=0&suggestChosen=false&clicks=searchClicked&includeHistory=true&keyword=${encodeURIComponent(jobRole)}`,
-      parser: parseGenericRSS
-    },
-    {
-      name: 'Monster RSS',
-      url: `https://www.monster.com/rss?q=${encodeURIComponent(jobRole)}`,
+      url: `https://www.ziprecruiter.com/feed/jobs?q=${encodeURIComponent(jobRole)}&location=United%20States`,
       parser: parseGenericRSS
     },
     {
       name: 'Jooble RSS',
-      url: `https://jooble.org/rss?q=${encodeURIComponent(jobRole)}`,
+      url: `https://jooble.org/rss?q=${encodeURIComponent(jobRole)}&l=United%20States`,
       parser: parseGenericRSS
     }
   ];
   
   for (const feed of rssFeeds) {
     try {
-      console.log(`Fetching ${feed.name}...`);
+      console.log(`Fetching ${feed.name} from: ${feed.url}`);
       const response = await axios.get(feed.url, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+          'Accept-Language': 'en-US,en;q=0.9'
         },
         timeout: 30000
       });
       
+      console.log(`${feed.name} response status: ${response.status}`);
+      console.log(`${feed.name} response length: ${response.data.length}`);
+      
       const feedData = await rssParser.parseString(response.data);
+      console.log(`${feed.name} parsed feed items: ${feedData.items ? feedData.items.length : 0}`);
+      
       const feedJobs = feed.parser(feedData, jobRole, feed.name);
       jobs.push(...feedJobs);
       console.log(`Found ${feedJobs.length} jobs from ${feed.name}`);
     } catch (error) {
       console.error(`${feed.name} error:`, error.message);
+      console.error(`${feed.name} error details:`, error.response ? error.response.status : 'No response');
     }
   }
   
+  console.log(`Total RSS jobs found: ${jobs.length}`);
   return jobs;
 }
 
