@@ -1,8 +1,12 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const cheerio = require('cheerio');
+const axios = require('axios');
+const RSSParser = require('rss-parser');
 
 puppeteer.use(StealthPlugin());
+
+const rssParser = new RSSParser();
 
 const jobPortals = [
   { name: 'LinkedIn', url: 'https://www.linkedin.com/jobs/search/', type: 'linkedin' },
@@ -343,8 +347,18 @@ async function searchJobs(jobRole) {
   
   const allJobs = [];
   
+  // Try RSS feeds first (more reliable)
   try {
-    // Scrape LinkedIn with improved headers and delays
+    console.log('Fetching from RSS feeds...');
+    const rssJobs = await fetchRSSJobs(jobRole);
+    allJobs.push(...rssJobs);
+    console.log(`Found ${rssJobs.length} jobs from RSS feeds`);
+  } catch (error) {
+    console.error('RSS feed error:', error.message);
+  }
+  
+  // Try web scraping as backup
+  try {
     console.log('Scraping LinkedIn...');
     const linkedinJobs = await scrapeLinkedIn(jobRole);
     allJobs.push(...linkedinJobs);
@@ -354,7 +368,6 @@ async function searchJobs(jobRole) {
   }
   
   try {
-    // Scrape Indeed with improved headers and delays
     console.log('Scraping Indeed...');
     const indeedJobs = await scrapeIndeed(jobRole);
     allJobs.push(...indeedJobs);
@@ -364,7 +377,6 @@ async function searchJobs(jobRole) {
   }
   
   try {
-    // Scrape Dice with improved headers and delays
     console.log('Scraping Dice...');
     const diceJobs = await scrapeDice(jobRole);
     allJobs.push(...diceJobs);
@@ -373,15 +385,138 @@ async function searchJobs(jobRole) {
     console.error('Dice scraping failed:', error.message);
   }
   
-  // Only use sample data if absolutely no jobs found and all scrapers failed
+  // Only use sample data if absolutely no jobs found
   if (allJobs.length === 0) {
-    console.log('No jobs found from any scraper, providing sample data');
+    console.log('No jobs found from any source, providing sample data');
     allJobs.push(...getSampleJobs(jobRole));
   }
   
   console.log(`Total jobs found: ${allJobs.length}`);
   
   return allJobs;
+}
+
+async function fetchRSSJobs(jobRole) {
+  const jobs = [];
+  
+  // RSS feeds from various job boards
+  const rssFeeds = [
+    {
+      name: 'Indeed RSS',
+      url: `https://www.indeed.com/rss?q=${encodeURIComponent(jobRole + ' c2c')}&fromage=1`,
+      parser: parseIndeedRSS
+    },
+    {
+      name: 'Dice RSS',
+      url: `https://www.dice.com/feed/rss?q=${encodeURIComponent(jobRole)}`,
+      parser: parseDiceRSS
+    }
+  ];
+  
+  for (const feed of rssFeeds) {
+    try {
+      console.log(`Fetching ${feed.name}...`);
+      const response = await axios.get(feed.url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        },
+        timeout: 30000
+      });
+      
+      const feedData = await rssParser.parseString(response.data);
+      const feedJobs = feed.parser(feedData, jobRole);
+      jobs.push(...feedJobs);
+      console.log(`Found ${feedJobs.length} jobs from ${feed.name}`);
+    } catch (error) {
+      console.error(`${feed.name} error:`, error.message);
+    }
+  }
+  
+  return jobs;
+}
+
+function parseIndeedRSS(feed, jobRole) {
+  const jobs = [];
+  
+  if (!feed.items) return jobs;
+  
+  for (const item of feed.items) {
+    const description = item.contentSnippet || item.description || '';
+    const title = item.title || '';
+    
+    if (isC2C(description) || hasVisaRequirement(description) || title.toLowerCase().includes('c2c')) {
+      jobs.push({
+        title: title,
+        company: extractCompanyFromTitle(title),
+        location: extractLocationFromDescription(description),
+        visaStatus: getVisaStatus(description),
+        employmentType: 'C2C',
+        postedDate: new Date(item.pubDate).toISOString().split('T')[0],
+        source: 'Indeed RSS',
+        email: extractEmail(description),
+        phone: extractPhone(description),
+        description: description.substring(0, 500),
+        link: item.link
+      });
+    }
+  }
+  
+  return jobs;
+}
+
+function parseDiceRSS(feed, jobRole) {
+  const jobs = [];
+  
+  if (!feed.items) return jobs;
+  
+  for (const item of feed.items) {
+    const description = item.contentSnippet || item.description || '';
+    const title = item.title || '';
+    
+    if (isC2C(description) || hasVisaRequirement(description) || title.toLowerCase().includes('c2c')) {
+      jobs.push({
+        title: title,
+        company: extractCompanyFromTitle(title),
+        location: extractLocationFromDescription(description),
+        visaStatus: getVisaStatus(description),
+        employmentType: 'C2C',
+        postedDate: new Date(item.pubDate).toISOString().split('T')[0],
+        source: 'Dice RSS',
+        email: extractEmail(description),
+        phone: extractPhone(description),
+        description: description.substring(0, 500),
+        link: item.link
+      });
+    }
+  }
+  
+  return jobs;
+}
+
+function extractCompanyFromTitle(title) {
+  // Try to extract company name from title
+  const parts = title.split('-');
+  if (parts.length > 1) {
+    return parts[parts.length - 1].trim();
+  }
+  return 'Unknown Company';
+}
+
+function extractLocationFromDescription(description) {
+  // Simple location extraction - look for common patterns
+  const locationPatterns = [
+    /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?,\s*[A-Z]{2})/,
+    /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/
+  ];
+  
+  for (const pattern of locationPatterns) {
+    const match = description.match(pattern);
+    if (match) {
+      return match[1];
+    }
+  }
+  
+  return 'Location Not Specified';
 }
 
 function getSampleJobs(jobRole) {

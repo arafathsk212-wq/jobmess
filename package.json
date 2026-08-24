@@ -28,6 +28,7 @@
     "puppeteer-core": "^25.8.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "rss-parser": "^3.13.0",
     "ws": "^8.21.3",
     "xlsx": "^0.18.5"
   }
