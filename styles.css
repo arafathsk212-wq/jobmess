@@ -937,15 +937,15 @@ html, body {
 
 /* Header Styles */
 header {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(15px);
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(8px);
   padding: 20px 0;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
   animation: slideDown 0.8s ease-out;
   position: sticky;
   top: 0;
   z-index: 1000;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 @keyframes slideDown {
