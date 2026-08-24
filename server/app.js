@@ -371,8 +371,8 @@ app.post('/api/jobs/search', authRequired, async (req, res) => {
   
   try {
     console.log(`Searching database for jobs: ${jobRole}`);
-    // Search database for jobs matching the role
-    const jobs = repos.getJobsByRole(jobRole, 7); // Get jobs from last 7 days
+    // Search database for jobs matching the role (last 24 hours)
+    const jobs = repos.getJobsByRole(jobRole, 24);
     
     if (jobs.length === 0) {
       // If no jobs in database, trigger a fresh search
@@ -397,7 +397,7 @@ app.post('/api/jobs/search', authRequired, async (req, res) => {
 
 app.get('/api/jobs', authRequired, async (req, res) => {
   try {
-    const jobs = repos.getJobs(7); // Get jobs from last 7 days
+    const jobs = repos.getJobs(24); // Get jobs from last 24 hours
     res.json({ jobs });
   } catch (error) {
     console.error('Error fetching jobs:', error);
@@ -421,7 +421,7 @@ app.post('/api/jobs/refresh', authRequired, async (req, res) => {
       }
     }
     
-    const updatedJobs = repos.getJobs(1); // Get jobs from last day
+    const updatedJobs = repos.getJobs(24); // Get jobs from last 24 hours
     res.json({ 
       message: 'Jobs refreshed successfully',
       jobsSaved: totalJobsSaved,

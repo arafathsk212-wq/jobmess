@@ -82,9 +82,9 @@ function saveJob(job) {
   }
 }
 
-function getJobs(daysBack = 7) {
+function getJobs(hoursBack = 24) {
   const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+  cutoffDate.setHours(cutoffDate.getHours() - hoursBack);
   const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
   
   const rows = db.prepare(`
@@ -110,9 +110,9 @@ function getJobs(daysBack = 7) {
   }));
 }
 
-function getJobsByRole(jobRole, daysBack = 7) {
+function getJobsByRole(jobRole, hoursBack = 24) {
   const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+  cutoffDate.setHours(cutoffDate.getHours() - hoursBack);
   const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
   
   const rows = db.prepare(`
@@ -138,13 +138,13 @@ function getJobsByRole(jobRole, daysBack = 7) {
   }));
 }
 
-function deleteOldJobs(daysToKeep = 30) {
+function deleteOldJobs(hoursToKeep = 24) {
   const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
+  cutoffDate.setHours(cutoffDate.getHours() - hoursToKeep);
   const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
   
   const result = db.prepare('DELETE FROM jobs WHERE posted_date < ?').run(cutoffDateStr);
-  console.log(`Deleted ${result.changes} old jobs older than ${daysToKeep} days`);
+  console.log(`Deleted ${result.changes} old jobs older than ${hoursToKeep} hours`);
   return result.changes;
 }
 

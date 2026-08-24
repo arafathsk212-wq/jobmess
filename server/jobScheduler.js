@@ -78,8 +78,8 @@ class JobScheduler {
 
       console.log(`Job update completed. Total jobs saved: ${totalJobsSaved}`);
 
-      // Clean up old jobs more frequently (older than 7 days)
-      const deletedCount = repos.deleteOldJobs(7);
+      // Clean up old jobs older than 24 hours
+      const deletedCount = repos.deleteOldJobs(24);
       console.log(`Cleaned up ${deletedCount} old jobs`);
 
     } catch (error) {

@@ -274,8 +274,8 @@ function getSampleJobs(jobRole) {
   const now = new Date();
   const jobs = [];
   
-  // Generate jobs with timestamps spread over the last few hours to simulate frequent updates
-  const timeOffsets = [0, 1, 2, 3, 4, 5, 10, 15, 30, 60]; // minutes ago
+  // Generate jobs with timestamps spread over the last 24 hours
+  const timeOffsets = [0, 1, 2, 3, 4, 5, 10, 15, 30, 60, 120, 180, 360, 720, 1440]; // minutes ago (up to 24 hours)
   
   const companies = [
     { name: 'Tech Solutions Inc', location: 'Dallas, TX', visa: 'Green Card' },
@@ -287,7 +287,12 @@ function getSampleJobs(jobRole) {
     { name: 'Remote Tech Corp', location: 'Remote', visa: 'Green Card' },
     { name: 'GovTech Staffing', location: 'Washington DC', visa: 'US Citizen' },
     { name: 'Ecom Solutions', location: 'Seattle, WA', visa: 'H-1B' },
-    { name: 'TechStart Inc', location: 'Austin, TX', visa: 'Green Card' }
+    { name: 'TechStart Inc', location: 'Austin, TX', visa: 'Green Card' },
+    { name: 'DataFlow Systems', location: 'Denver, CO', visa: 'Green Card' },
+    { name: 'CyberSecure Inc', location: 'Miami, FL', visa: 'H-1B' },
+    { name: 'CloudFirst Tech', location: 'Phoenix, AZ', visa: 'US Citizen' },
+    { name: 'DevOps Masters', location: 'Portland, OR', visa: 'EAD' },
+    { name: 'AI Solutions', location: 'San Diego, CA', visa: 'Green Card' }
   ];
 
   const descriptions = [
@@ -300,7 +305,12 @@ function getSampleJobs(jobRole) {
     `100% remote ${jobRole} position. C2C only, Green Card required. Eastern timezone preferred.`,
     `${jobRole} for government project. US Citizens only, C2C. Security clearance may be required.`,
     `${jobRole} for major e-commerce platform. C2C, H-1B transfer. High-volume transaction experience needed.`,
-    `${jobRole} for fast-growing startup. C2C only, GC holders. Agile environment, rapid development cycles.`
+    `${jobRole} for fast-growing startup. C2C only, GC holders. Agile environment, rapid development cycles.`,
+    `${jobRole} for data analytics project. C2C, Green Card preferred. Big data experience required.`,
+    `${jobRole} for cybersecurity firm. C2C, H-1B transfer available. Security clearance preferred.`,
+    `${jobRole} for cloud migration project. C2C, US Citizens only. AWS/Azure experience required.`,
+    `${jobRole} for DevOps team. C2C, EAD/GC accepted. CI/CD pipeline experience needed.`,
+    `${jobRole} for AI/ML project. C2C, Green Card holders. Machine learning experience required.`
   ];
 
   const titles = [
@@ -313,10 +323,15 @@ function getSampleJobs(jobRole) {
     `${jobRole} - Remote Opportunity`,
     `${jobRole} - Government Project`,
     `${jobRole} - E-commerce Platform`,
-    `${jobRole} - Startup Environment`
+    `${jobRole} - Startup Environment`,
+    `${jobRole} - Data Analytics`,
+    `${jobRole} - Cybersecurity`,
+    `${jobRole} - Cloud Migration`,
+    `${jobRole} - DevOps Team`,
+    `${jobRole} - AI/ML Project`
   ];
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 15; i++) {
     const jobTime = new Date(now.getTime() - timeOffsets[i] * 60 * 1000);
     const postedDate = jobTime.toISOString().split('T')[0];
     
