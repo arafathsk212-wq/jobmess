@@ -52,51 +52,91 @@ async function scrapeLinkedIn(jobRole) {
   try {
     browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu'
+      ]
     });
 
     const page = await browser.newPage();
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+    
+    // Set realistic headers
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    await page.setViewport({ width: 1920, height: 1080 });
+    
+    // Set additional headers to look like a real browser
+    await page.setExtraHTTPHeaders({
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'DNT': '1',
+      'Connection': 'keep-alive',
+      'Upgrade-Insecure-Requests': '1'
+    });
 
     const searchUrl = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(jobRole)}&f_TPR=r86400&f_JT=F`;
-    await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+    console.log(`LinkedIn URL: ${searchUrl}`);
+    
+    await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 45000 });
 
-    await page.waitForTimeout(3000);
+    // Wait for content to load
+    await page.waitForTimeout(5000);
 
     const content = await page.content();
     const $ = cheerio.load(content);
 
     const jobs = [];
-    $('.job-card-container').each((index, element) => {
-      const $el = $(element);
-      const title = $el.find('.job-title').text().trim();
-      const company = $el.find('.company-name').text().trim();
-      const location = $el.find('.job-location').text().trim();
-      const description = $el.find('.job-description').text().trim();
-      
-      if (title && company) {
-        const email = extractEmail(description);
-        const phone = extractPhone(description);
-        const isC2CJob = isC2C(description);
-        const visaStatus = getVisaStatus(description);
+    
+    // Try multiple selectors for LinkedIn job cards
+    const selectors = [
+      '.job-card-container',
+      '.jobs-search__results-list li',
+      '.job-search-card',
+      '[data-job-id]'
+    ];
+    
+    for (const selector of selectors) {
+      $(selector).each((index, element) => {
+        const $el = $(element);
+        const title = $el.find('.job-title, .job-search-card__title').text().trim() || 
+                     $el.find('h3, h4').first().text().trim();
+        const company = $el.find('.company-name, .job-search-card__subtitle-primary').text().trim() ||
+                       $el.find('[data-anonymize="company-name"]').text().trim();
+        const location = $el.find('.job-location, .job-search-card__subtitle-secondary').text().trim() ||
+                        $el.find('[data-anonymize="job-location"]').text().trim();
+        const description = $el.find('.job-description, .job-search-card__description').text().trim() ||
+                           $el.find('.show-more-less-html').text().trim();
         
-        if (isC2CJob || hasVisaRequirement(description)) {
-          jobs.push({
-            title,
-            company,
-            location,
-            visaStatus,
-            employmentType: isC2CJob ? 'C2C' : 'Not Specified',
-            postedDate: new Date().toISOString().split('T')[0],
-            source: 'LinkedIn',
-            email,
-            phone,
-            description: description.substring(0, 500)
-          });
+        if (title && company) {
+          const email = extractEmail(description);
+          const phone = extractPhone(description);
+          const isC2CJob = isC2C(description);
+          const visaStatus = getVisaStatus(description);
+          
+          if (isC2CJob || hasVisaRequirement(description)) {
+            jobs.push({
+              title,
+              company,
+              location,
+              visaStatus,
+              employmentType: isC2CJob ? 'C2C' : 'Not Specified',
+              postedDate: new Date().toISOString().split('T')[0],
+              source: 'LinkedIn',
+              email,
+              phone,
+              description: description.substring(0, 500)
+            });
+          }
         }
-      }
-    });
+      });
+      
+      if (jobs.length > 0) break; // Stop if we found jobs with this selector
+    }
 
+    console.log(`LinkedIn scraping found ${jobs.length} jobs`);
     return jobs;
   } catch (error) {
     console.error('LinkedIn scraping error:', error.message);
@@ -111,51 +151,88 @@ async function scrapeIndeed(jobRole) {
   try {
     browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu'
+      ]
     });
 
     const page = await browser.newPage();
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+    
+    // Set realistic headers
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    await page.setViewport({ width: 1920, height: 1080 });
+    
+    await page.setExtraHTTPHeaders({
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'DNT': '1',
+      'Connection': 'keep-alive',
+      'Upgrade-Insecure-Requests': '1'
+    });
 
     const searchUrl = `https://www.indeed.com/jobs?q=${encodeURIComponent(jobRole + ' c2c')}&fromage=1`;
-    await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+    console.log(`Indeed URL: ${searchUrl}`);
+    
+    await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 45000 });
 
-    await page.waitForTimeout(3000);
+    // Wait for content to load
+    await page.waitForTimeout(5000);
 
     const content = await page.content();
     const $ = cheerio.load(content);
 
     const jobs = [];
-    $('.jobsearch-SerpJobCard').each((index, element) => {
-      const $el = $(element);
-      const title = $el.find('.jobTitle').text().trim();
-      const company = $el.find('.companyName').text().trim();
-      const location = $el.find('.companyLocation').text().trim();
-      const description = $el.find('.job-snippet').text().trim();
-      
-      if (title && company) {
-        const email = extractEmail(description);
-        const phone = extractPhone(description);
-        const isC2CJob = isC2C(description);
-        const visaStatus = getVisaStatus(description);
+    
+    // Try multiple selectors for Indeed job cards
+    const selectors = [
+      '.jobsearch-SerpJobCard',
+      '.job_seen_beacon',
+      '.css-1x7z1ps',
+      '[data-jk]'
+    ];
+    
+    for (const selector of selectors) {
+      $(selector).each((index, element) => {
+        const $el = $(element);
+        const title = $el.find('.jobTitle, h2, .jcs-JobTitle').text().trim() ||
+                     $el.find('[data-testid="job-title"]').text().trim();
+        const company = $el.find('.companyName, .companyInfo, [data-testid="company-name"]').text().trim();
+        const location = $el.find('.companyLocation, [data-testid="job-location"]').text().trim();
+        const description = $el.find('.job-snippet, .job-description').text().trim() ||
+                           $el.find('[data-testid="job-snippet"]').text().trim();
         
-        if (isC2CJob || hasVisaRequirement(description)) {
-          jobs.push({
-            title,
-            company,
-            location,
-            visaStatus,
-            employmentType: isC2CJob ? 'C2C' : 'Not Specified',
-            postedDate: new Date().toISOString().split('T')[0],
-            source: 'Indeed',
-            email,
-            phone,
-            description: description.substring(0, 500)
-          });
+        if (title && company) {
+          const email = extractEmail(description);
+          const phone = extractPhone(description);
+          const isC2CJob = isC2C(description);
+          const visaStatus = getVisaStatus(description);
+          
+          if (isC2CJob || hasVisaRequirement(description)) {
+            jobs.push({
+              title,
+              company,
+              location,
+              visaStatus,
+              employmentType: isC2CJob ? 'C2C' : 'Not Specified',
+              postedDate: new Date().toISOString().split('T')[0],
+              source: 'Indeed',
+              email,
+              phone,
+              description: description.substring(0, 500)
+            });
+          }
         }
-      }
-    });
+      });
+      
+      if (jobs.length > 0) break; // Stop if we found jobs with this selector
+    }
 
+    console.log(`Indeed scraping found ${jobs.length} jobs`);
     return jobs;
   } catch (error) {
     console.error('Indeed scraping error:', error.message);
@@ -170,51 +247,88 @@ async function scrapeDice(jobRole) {
   try {
     browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args: [
+        '--no-sandbox', 
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gpu'
+      ]
     });
 
     const page = await browser.newPage();
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+    
+    // Set realistic headers
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    await page.setViewport({ width: 1920, height: 1080 });
+    
+    await page.setExtraHTTPHeaders({
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'DNT': '1',
+      'Connection': 'keep-alive',
+      'Upgrade-Insecure-Requests': '1'
+    });
 
     const searchUrl = `https://www.dice.com/jobs?q=${encodeURIComponent(jobRole)}&sort=date&limit=20`;
-    await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 30000 });
+    console.log(`Dice URL: ${searchUrl}`);
+    
+    await page.goto(searchUrl, { waitUntil: 'networkidle2', timeout: 45000 });
 
-    await page.waitForTimeout(3000);
+    // Wait for content to load
+    await page.waitForTimeout(5000);
 
     const content = await page.content();
     const $ = cheerio.load(content);
 
     const jobs = [];
-    $('.search-result').each((index, element) => {
-      const $el = $(element);
-      const title = $el.find('.jobTitle').text().trim();
-      const company = $el.find('.company').text().trim();
-      const location = $el.find('.location').text().trim();
-      const description = $el.find('.shortdesc').text().trim();
-      
-      if (title && company) {
-        const email = extractEmail(description);
-        const phone = extractPhone(description);
-        const isC2CJob = isC2C(description);
-        const visaStatus = getVisaStatus(description);
+    
+    // Try multiple selectors for Dice job cards
+    const selectors = [
+      '.search-result',
+      '.card',
+      '.job-card',
+      '[data-cy="job"]'
+    ];
+    
+    for (const selector of selectors) {
+      $(selector).each((index, element) => {
+        const $el = $(element);
+        const title = $el.find('.jobTitle, h3, .card-title').text().trim() ||
+                     $el.find('[data-testid="job-title"]').text().trim();
+        const company = $el.find('.company, .card-company, [data-testid="company-name"]').text().trim();
+        const location = $el.find('.location, .card-location, [data-testid="location"]').text().trim();
+        const description = $el.find('.shortdesc, .card-description, .job-description').text().trim() ||
+                           $el.find('[data-testid="job-description"]').text().trim();
         
-        if (isC2CJob || hasVisaRequirement(description)) {
-          jobs.push({
-            title,
-            company,
-            location,
-            visaStatus,
-            employmentType: isC2CJob ? 'C2C' : 'Not Specified',
-            postedDate: new Date().toISOString().split('T')[0],
-            source: 'Dice',
-            email,
-            phone,
-            description: description.substring(0, 500)
-          });
+        if (title && company) {
+          const email = extractEmail(description);
+          const phone = extractPhone(description);
+          const isC2CJob = isC2C(description);
+          const visaStatus = getVisaStatus(description);
+          
+          if (isC2CJob || hasVisaRequirement(description)) {
+            jobs.push({
+              title,
+              company,
+              location,
+              visaStatus,
+              employmentType: isC2CJob ? 'C2C' : 'Not Specified',
+              postedDate: new Date().toISOString().split('T')[0],
+              source: 'Dice',
+              email,
+              phone,
+              description: description.substring(0, 500)
+            });
+          }
         }
-      }
-    });
+      });
+      
+      if (jobs.length > 0) break; // Stop if we found jobs with this selector
+    }
 
+    console.log(`Dice scraping found ${jobs.length} jobs`);
     return jobs;
   } catch (error) {
     console.error('Dice scraping error:', error.message);
@@ -230,7 +344,7 @@ async function searchJobs(jobRole) {
   const allJobs = [];
   
   try {
-    // Scrape LinkedIn
+    // Scrape LinkedIn with improved headers and delays
     console.log('Scraping LinkedIn...');
     const linkedinJobs = await scrapeLinkedIn(jobRole);
     allJobs.push(...linkedinJobs);
@@ -240,7 +354,7 @@ async function searchJobs(jobRole) {
   }
   
   try {
-    // Scrape Indeed
+    // Scrape Indeed with improved headers and delays
     console.log('Scraping Indeed...');
     const indeedJobs = await scrapeIndeed(jobRole);
     allJobs.push(...indeedJobs);
@@ -250,7 +364,7 @@ async function searchJobs(jobRole) {
   }
   
   try {
-    // Scrape Dice
+    // Scrape Dice with improved headers and delays
     console.log('Scraping Dice...');
     const diceJobs = await scrapeDice(jobRole);
     allJobs.push(...diceJobs);
@@ -259,9 +373,9 @@ async function searchJobs(jobRole) {
     console.error('Dice scraping failed:', error.message);
   }
   
-  // If no jobs found, provide sample data for testing
+  // Only use sample data if absolutely no jobs found and all scrapers failed
   if (allJobs.length === 0) {
-    console.log('No jobs found from scraping, providing sample data');
+    console.log('No jobs found from any scraper, providing sample data');
     allJobs.push(...getSampleJobs(jobRole));
   }
   
