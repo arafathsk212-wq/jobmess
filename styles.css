@@ -891,6 +891,7 @@ body {
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
+  background-repeat: no-repeat;
   min-height: 100vh;
   color: #333;
   animation: gradientShift 15s ease infinite;
@@ -905,22 +906,36 @@ body {
   }
 }
 
+html, body {
+  height: 100%;
+  width: 100%;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  flex: 1;
 }
 
 /* Header Styles */
 header {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(15px);
   padding: 20px 0;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   animation: slideDown 0.8s ease-out;
   position: sticky;
   top: 0;
   z-index: 1000;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 @keyframes slideDown {
@@ -997,13 +1012,14 @@ button:active {
 
 /* Section Styles */
 section {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(15px);
   border-radius: 20px;
   padding: 40px;
   margin: 20px 0;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   animation: fadeInUp 0.8s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 @keyframes fadeInUp {
@@ -1037,6 +1053,15 @@ h1, h2, h3 {
   max-width: 400px;
   margin: 100px auto;
   animation: zoomIn 0.6s ease-out;
+}
+
+.login-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 @keyframes zoomIn {
@@ -1086,6 +1111,12 @@ input:focus {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
   animation: fadeIn 1s ease-out;
+  background: transparent;
+}
+
+.dashboard-grid {
+  background: transparent;
+  flex: 1;
 }
 
 @keyframes fadeIn {
@@ -1098,7 +1129,8 @@ input:focus {
 }
 
 .option-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: rgba(102, 126, 234, 0.85);
+  backdrop-filter: blur(15px);
   color: white;
   padding: 30px;
   border-radius: 15px;
@@ -1106,6 +1138,7 @@ input:focus {
   transition: all 0.4s ease;
   box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
   animation: cardHover 4s ease-in-out infinite;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 @keyframes cardHover {
@@ -1140,6 +1173,28 @@ input:focus {
 
 .search-container input {
   flex: 1;
+}
+
+/* Landing Page */
+.landing-section {
+  background: transparent;
+  padding: 40px 20px;
+}
+
+.job-sourcing-section,
+.mail-section,
+.job-results-section {
+  background: transparent;
+  padding: 20px;
+}
+
+.panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 /* Progress Container */
@@ -1186,14 +1241,14 @@ input:focus {
 }
 
 .job-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(15px);
   border-radius: 15px;
   padding: 25px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   transition: all 0.4s ease;
   animation: cardEntrance 0.6s ease-out;
-  border: 1px solid rgba(102, 126, 234, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 @keyframes cardEntrance {
@@ -1335,6 +1390,15 @@ input:focus {
   max-width: 800px;
   margin: 40px auto;
   animation: fadeIn 1s ease-out;
+}
+
+.privacy-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .privacy-section h2 {
