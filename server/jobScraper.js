@@ -275,7 +275,7 @@ function getSampleJobs(jobRole) {
   const jobs = [];
   
   // Generate jobs with timestamps spread over the last 24 hours
-  const timeOffsets = [0, 1, 2, 3, 4, 5, 10, 15, 30, 60, 120, 180, 360, 720, 1440]; // minutes ago (up to 24 hours)
+  const timeOffsets = [0, 1, 2, 3, 4, 5, 10, 15, 30, 45, 60, 90, 120, 180, 240, 300, 360, 480, 600, 720, 900, 1080, 1260, 1440]; // minutes ago (up to 24 hours)
   
   const companies = [
     { name: 'Tech Solutions Inc', location: 'Dallas, TX', visa: 'Green Card' },
@@ -292,7 +292,16 @@ function getSampleJobs(jobRole) {
     { name: 'CyberSecure Inc', location: 'Miami, FL', visa: 'H-1B' },
     { name: 'CloudFirst Tech', location: 'Phoenix, AZ', visa: 'US Citizen' },
     { name: 'DevOps Masters', location: 'Portland, OR', visa: 'EAD' },
-    { name: 'AI Solutions', location: 'San Diego, CA', visa: 'Green Card' }
+    { name: 'AI Solutions', location: 'San Diego, CA', visa: 'Green Card' },
+    { name: 'Enterprise IT', location: 'Houston, TX', visa: 'Green Card' },
+    { name: 'Prime Vendor Inc', location: 'Atlanta, GA', visa: 'H-1B' },
+    { name: 'TechBridge LLC', location: 'Minneapolis, MN', visa: 'US Citizen' },
+    { name: 'CloudScale Systems', location: 'Tampa, FL', visa: 'Green Card' },
+    { name: 'DataDriven Inc', location: 'Nashville, TN', visa: 'EAD' },
+    { name: 'SecureNet Solutions', location: 'Salt Lake City, UT', visa: 'H-1B' },
+    { name: 'FutureTech Staffing', location: 'Kansas City, MO', visa: 'Green Card' },
+    { name: 'Digital First Corp', location: 'Raleigh, NC', visa: 'US Citizen' },
+    { name: 'Smart IT Solutions', location: 'Indianapolis, IN', visa: 'Green Card' }
   ];
 
   const descriptions = [
@@ -310,7 +319,16 @@ function getSampleJobs(jobRole) {
     `${jobRole} for cybersecurity firm. C2C, H-1B transfer available. Security clearance preferred.`,
     `${jobRole} for cloud migration project. C2C, US Citizens only. AWS/Azure experience required.`,
     `${jobRole} for DevOps team. C2C, EAD/GC accepted. CI/CD pipeline experience needed.`,
-    `${jobRole} for AI/ML project. C2C, Green Card holders. Machine learning experience required.`
+    `${jobRole} for AI/ML project. C2C, Green Card holders. Machine learning experience required.`,
+    `${jobRole} for enterprise client. C2C only, GC holders. Large-scale system experience.`,
+    `${jobRole} for prime vendor role. C2C, H-1B transfer. Direct client interaction.`,
+    `${jobRole} for retail chain. C2C, US Citizens. Point of sale systems experience.`,
+    `${jobRole} for logistics company. C2C, Green Card. Supply chain software experience.`,
+    `${jobRole} for manufacturing firm. C2C, EAD/GC. ERP systems experience required.`,
+    `${jobRole} for insurance company. C2C, H-1B transfer. Policy management systems.`,
+    `${jobRole} for telecom provider. C2C, Green Card. Network management experience.`,
+    `${jobRole} for energy sector. C2C, US Citizens. SCADA systems experience.`,
+    `${jobRole} for education tech. C2C, Green Card. Learning management systems.`
   ];
 
   const titles = [
@@ -328,10 +346,19 @@ function getSampleJobs(jobRole) {
     `${jobRole} - Cybersecurity`,
     `${jobRole} - Cloud Migration`,
     `${jobRole} - DevOps Team`,
-    `${jobRole} - AI/ML Project`
+    `${jobRole} - AI/ML Project`,
+    `${jobRole} - Enterprise Client`,
+    `${jobRole} - Prime Vendor Role`,
+    `${jobRole} - Retail Chain`,
+    `${jobRole} - Logistics Company`,
+    `${jobRole} - Manufacturing Firm`,
+    `${jobRole} - Insurance Company`,
+    `${jobRole} - Telecom Provider`,
+    `${jobRole} - Energy Sector`,
+    `${jobRole} - Education Tech`
   ];
 
-  for (let i = 0; i < 15; i++) {
+  for (let i = 0; i < 24; i++) {
     const jobTime = new Date(now.getTime() - timeOffsets[i] * 60 * 1000);
     const postedDate = jobTime.toISOString().split('T')[0];
     
