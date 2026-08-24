@@ -412,9 +412,11 @@ app.post('/api/jobs/refresh', authRequired, async (req, res) => {
     // Trigger immediate job update
     const jobRoles = ['Java Developer', '.NET Developer', 'DevOps Engineer'];
     let totalJobsSaved = 0;
+    let totalJobsFound = 0;
     
     for (const jobRole of jobRoles) {
       const jobs = await searchJobs(jobRole);
+      totalJobsFound += jobs.length;
       for (const job of jobs) {
         const saved = repos.saveJob(job);
         if (saved) totalJobsSaved++;
@@ -424,11 +426,26 @@ app.post('/api/jobs/refresh', authRequired, async (req, res) => {
     const updatedJobs = repos.getJobs(24); // Get jobs from last 24 hours
     res.json({ 
       message: 'Jobs refreshed successfully',
+      jobsFound: totalJobsFound,
       jobsSaved: totalJobsSaved,
       recentJobs: updatedJobs
     });
   } catch (error) {
     console.error('Error refreshing jobs:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/jobs/clear', authRequired, async (req, res) => {
+  try {
+    console.log('Clearing all jobs from database');
+    const deletedCount = repos.clearAllJobs();
+    res.json({ 
+      message: 'All jobs cleared successfully',
+      jobsDeleted: deletedCount
+    });
+  } catch (error) {
+    console.error('Error clearing jobs:', error);
     res.status(500).json({ error: error.message });
   }
 });

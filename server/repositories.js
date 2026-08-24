@@ -148,6 +148,12 @@ function deleteOldJobs(hoursToKeep = 24) {
   return result.changes;
 }
 
+function clearAllJobs() {
+  const result = db.prepare('DELETE FROM jobs').run();
+  console.log(`Cleared all jobs from database: ${result.changes} jobs deleted`);
+  return result.changes;
+}
+
 function recordImport(userId, { id, fileName, totalRecipients, validRecipients, invalidRecipients }) {
   db.prepare(`
     INSERT INTO imports (id, user_id, file_name, total_recipients, valid_recipients, invalid_recipients)
@@ -348,6 +354,7 @@ module.exports = {
   getJobs,
   getJobsByRole,
   deleteOldJobs,
+  clearAllJobs,
   recordImport,
   listCampaigns,
   getCampaignById,

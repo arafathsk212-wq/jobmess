@@ -20,6 +20,7 @@ const elements = {
   backToLandingJob: document.getElementById('backToLandingJob'),
   jobRoleInput: document.getElementById('jobRoleInput'),
   searchJobs: document.getElementById('searchJobs'),
+  clearJobs: document.getElementById('clearJobs'),
   searchProgress: document.getElementById('searchProgress'),
   searchProgressBar: document.getElementById('searchProgressBar'),
   searchProgressText: document.getElementById('searchProgressText'),
@@ -538,6 +539,23 @@ async function searchJobs() {
   }
 }
 
+async function clearJobs() {
+  if (!confirm('Are you sure you want to clear all jobs from the database?')) {
+    return;
+  }
+  
+  try {
+    const response = await requestJson('/api/jobs/clear', {
+      method: 'POST',
+    });
+    
+    showToast(`Cleared ${response.jobsDeleted} jobs from database.`);
+    elements.jobResultsContainer.innerHTML = '<p class="muted-text">Database cleared. Search for new jobs to populate the database.</p>';
+  } catch (error) {
+    showToast(error.message, true);
+  }
+}
+
 function displayJobResults(jobs) {
   elements.jobResultsContainer.innerHTML = jobs.map(job => `
     <div class="job-card">
@@ -549,8 +567,9 @@ function displayJobResults(jobs) {
         <p><strong>Employment Type:</strong> ${escapeHtml(job.employmentType)}</p>
         <p><strong>Posted:</strong> ${escapeHtml(job.postedDate)}</p>
         <p><strong>Source:</strong> ${escapeHtml(job.source)}</p>
-        ${job.email ? `<p><strong>Email:</strong> <a href="mailto:${escapeHtml(job.email)}">${escapeHtml(job.email)}</a></p>` : ''}
-        ${job.phone ? `<p><strong>Phone:</strong> <a href="tel:${escapeHtml(job.phone)}">${escapeHtml(job.phone)}</a></p>` : ''}
+        <p><strong>Email:</strong> ${job.email && job.email !== 'Not Provided' ? `<a href="mailto:${escapeHtml(job.email)}">${escapeHtml(job.email)}</a>` : 'Not Provided'}</p>
+        <p><strong>Phone:</strong> ${job.phone && job.phone !== 'Not Provided' ? `<a href="tel:${escapeHtml(job.phone)}">${escapeHtml(job.phone)}</a>` : 'Not Provided'}</p>
+        ${job.skills && job.skills.length > 0 ? `<p><strong>Skills:</strong> ${escapeHtml(job.skills.join(', '))}</p>` : ''}
         <p><strong>Description:</strong> ${escapeHtml(job.description)}</p>
       </div>
     </div>
@@ -725,6 +744,7 @@ elements.backToLandingJob.addEventListener('click', showLandingPage);
 elements.backToJobSearch.addEventListener('click', showJobSourcingSection);
 elements.backToLandingMail.addEventListener('click', showLandingPage);
 elements.searchJobs.addEventListener('click', searchJobs);
+elements.clearJobs.addEventListener('click', clearJobs);
 elements.proceedToUpload.addEventListener('click', proceedToUpload);
 elements.validateEmails.addEventListener('click', validateEmails);
 elements.sendBulkEmails.addEventListener('click', sendBulkEmails);

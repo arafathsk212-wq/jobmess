@@ -58,12 +58,14 @@ class JobScheduler {
       const jobRoles = jobRoleSets[setIndex];
 
       let totalJobsSaved = 0;
+      let totalJobsFound = 0;
 
       for (const jobRole of jobRoles) {
         console.log(`Searching for jobs: ${jobRole}`);
         try {
           const jobs = await searchJobs(jobRole);
           console.log(`Found ${jobs.length} jobs for ${jobRole}`);
+          totalJobsFound += jobs.length;
 
           for (const job of jobs) {
             const saved = repos.saveJob(job);
@@ -76,7 +78,7 @@ class JobScheduler {
         }
       }
 
-      console.log(`Job update completed. Total jobs saved: ${totalJobsSaved}`);
+      console.log(`Job update completed. Total jobs found: ${totalJobsFound}, Total jobs saved: ${totalJobsSaved}`);
 
       // Clean up old jobs older than 24 hours
       const deletedCount = repos.deleteOldJobs(24);

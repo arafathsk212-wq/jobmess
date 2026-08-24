@@ -663,13 +663,15 @@ async function searchJobs(jobRole) {
     console.error('SimplyHired scraping failed:', error.message);
   }
   
+  console.log(`Total jobs found from all sources: ${allJobs.length}`);
+  
   // Only use sample data if absolutely no jobs found
   if (allJobs.length === 0) {
     console.log('No jobs found from any source, providing sample data');
     allJobs.push(...getSampleJobs(jobRole));
   }
   
-  console.log(`Total jobs found: ${allJobs.length}`);
+  console.log(`Total jobs to return: ${allJobs.length}`);
   
   return allJobs;
 }
@@ -926,7 +928,32 @@ function getSampleJobs(jobRole) {
     `${jobRole} for insurance company. C2C, H-1B transfer. Policy management systems.`,
     `${jobRole} for telecom provider. C2C, Green Card. Network management experience.`,
     `${jobRole} for energy sector. C2C, US Citizens. SCADA systems experience.`,
-    `${jobRole} for education tech. C2C, Green Card. Learning management systems.`
+    `${jobRole} for education tech. C2C, Green Card. Learning management systems.`,
+    // Jobs without C2C/visa mentions
+    `Looking for experienced ${jobRole} for immediate start. Must have strong communication skills and be available for client interviews.`,
+    `Senior ${jobRole} needed for long-term project. Looking for candidates with 5+ years experience.`,
+    `${jobRole} position available. Remote work possible. Great company culture.`,
+    `Urgent requirement for ${jobRole}. Client interview scheduled for next week.`,
+    `${jobRole} needed for banking client. Financial domain experience preferred.`,
+    `${jobRole} for healthcare project. Healthcare IT experience is a plus. Long-term contract.`,
+    `100% remote ${jobRole} position. Eastern timezone preferred.`,
+    `${jobRole} for government project. Security clearance may be required.`,
+    `${jobRole} for major e-commerce platform. High-volume transaction experience needed.`,
+    `${jobRole} for fast-growing startup. Agile environment, rapid development cycles.`,
+    `${jobRole} for data analytics project. Big data experience required.`,
+    `${jobRole} for cybersecurity firm. Security clearance preferred.`,
+    `${jobRole} for cloud migration project. AWS/Azure experience required.`,
+    `${jobRole} for DevOps team. CI/CD pipeline experience needed.`,
+    `${jobRole} for AI/ML project. Machine learning experience required.`,
+    `${jobRole} for enterprise client. Large-scale system experience.`,
+    `${jobRole} for prime vendor role. Direct client interaction.`,
+    `${jobRole} for retail chain. Point of sale systems experience.`,
+    `${jobRole} for logistics company. Supply chain software experience.`,
+    `${jobRole} for manufacturing firm. ERP systems experience required.`,
+    `${jobRole} for insurance company. Policy management systems.`,
+    `${jobRole} for telecom provider. Network management experience.`,
+    `${jobRole} for energy sector. SCADA systems experience.`,
+    `${jobRole} for education tech. Learning management systems.`
   ];
 
   const titles = [
@@ -953,24 +980,54 @@ function getSampleJobs(jobRole) {
     `${jobRole} - Insurance Company`,
     `${jobRole} - Telecom Provider`,
     `${jobRole} - Energy Sector`,
+    `${jobRole} - Education Tech`,
+    // Titles without C2C/visa mentions
+    `${jobRole} - Immediate Start`,
+    `Senior ${jobRole} - Long-term Project`,
+    `${jobRole} - Remote Work`,
+    `${jobRole} - Client Interview`,
+    `${jobRole} - Financial Services`,
+    `${jobRole} - Healthcare Project`,
+    `${jobRole} - Remote Opportunity`,
+    `${jobRole} - Government Project`,
+    `${jobRole} - E-commerce Platform`,
+    `${jobRole} - Startup Environment`,
+    `${jobRole} - Data Analytics`,
+    `${jobRole} - Cybersecurity`,
+    `${jobRole} - Cloud Migration`,
+    `${jobRole} - DevOps Team`,
+    `${jobRole} - AI/ML Project`,
+    `${jobRole} - Enterprise Client`,
+    `${jobRole} - Prime Vendor Role`,
+    `${jobRole} - Retail Chain`,
+    `${jobRole} - Logistics Company`,
+    `${jobRole} - Manufacturing Firm`,
+    `${jobRole} - Insurance Company`,
+    `${jobRole} - Telecom Provider`,
+    `${jobRole} - Energy Sector`,
     `${jobRole} - Education Tech`
   ];
 
-  for (let i = 0; i < 24; i++) {
-    const jobTime = new Date(now.getTime() - timeOffsets[i] * 60 * 1000);
+  for (let i = 0; i < 48; i++) {
+    const jobTime = new Date(now.getTime() - timeOffsets[i % 24] * 60 * 1000);
     const postedDate = jobTime.toISOString().split('T')[0];
+    
+    // Use AI analysis to determine employment type and visa status
+    const analysis = analyzeJobDescription(descriptions[i]);
     
     jobs.push({
       title: titles[i],
-      company: companies[i].name,
-      location: companies[i].location,
-      visaStatus: companies[i].visa,
-      employmentType: 'C2C',
+      company: companies[i % 24].name,
+      location: companies[i % 24].location,
+      visaStatus: analysis.visaStatus,
+      employmentType: analysis.employmentType,
       postedDate: postedDate,
       source: 'Sample Data',
-      email: `recruiter@${companies[i].name.toLowerCase().replace(/\s+/g, '')}.com`,
+      email: `recruiter@${companies[i % 24].name.toLowerCase().replace(/\s+/g, '')}.com`,
       phone: `+1-555-${String(100 + i * 111).padStart(3, '0')}-${String(1000 + i * 1111).padStart(4, '0')}`,
-      description: descriptions[i]
+      description: descriptions[i],
+      hasContactInfo: true,
+      skills: analysis.skills
     });
   }
 
