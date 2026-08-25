@@ -10,7 +10,7 @@ const rssParser = new RSSParser();
 
 // API Credentials from environment variables
 const ADZUNA_APP_ID = process.env.ADZUNA_APP_ID || '71f1e9f0';
-const ADZUNA_APP_KEY = process.env.ADZUNA_APP_KEY || '0c300347e587f06e9976d8d6ffe9fbb7';
+const ADZUNA_APP_KEY = process.env.ADZUNA_APP_KEY || '1729831db5ca1895c9a8c409129cc8c4';
 const LINKEDIN_CLIENT_ID = process.env.LINKEDIN_CLIENT_ID || '77hlemafrfeyk6';
 const LINKEDIN_CLIENT_SECRET = process.env.LINKEDIN_CLIENT_SECRET || 'your_linkedin_secret_here';
 
