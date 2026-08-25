@@ -624,60 +624,9 @@ async function searchJobs(jobRole) {
     console.error('RSS feed error:', error.message);
   }
   
-  // Try web scraping as additional backup
-  try {
-    console.log('Scraping LinkedIn...');
-    const linkedinJobs = await scrapeLinkedIn(jobRole);
-    allJobs.push(...linkedinJobs);
-    console.log(`Found ${linkedinJobs.length} jobs on LinkedIn`);
-  } catch (error) {
-    console.error('LinkedIn scraping failed:', error.message);
-  }
-  
-  try {
-    console.log('Scraping Indeed...');
-    const indeedJobs = await scrapeIndeed(jobRole);
-    allJobs.push(...indeedJobs);
-    console.log(`Found ${indeedJobs.length} jobs on Indeed`);
-  } catch (error) {
-    console.error('Indeed scraping failed:', error.message);
-  }
-  
-  try {
-    console.log('Scraping Dice...');
-    const diceJobs = await scrapeDice(jobRole);
-    allJobs.push(...diceJobs);
-    console.log(`Found ${diceJobs.length} jobs on Dice`);
-  } catch (error) {
-    console.error('Dice scraping failed:', error.message);
-  }
-  
-  try {
-    console.log('Scraping Monster...');
-    const monsterJobs = await scrapeMonster(jobRole);
-    allJobs.push(...monsterJobs);
-    console.log(`Found ${monsterJobs.length} jobs on Monster`);
-  } catch (error) {
-    console.error('Monster scraping failed:', error.message);
-  }
-  
-  try {
-    console.log('Scraping CareerBuilder...');
-    const careerBuilderJobs = await scrapeCareerBuilder(jobRole);
-    allJobs.push(...careerBuilderJobs);
-    console.log(`Found ${careerBuilderJobs.length} jobs on CareerBuilder`);
-  } catch (error) {
-    console.error('CareerBuilder scraping failed:', error.message);
-  }
-  
-  try {
-    console.log('Scraping SimplyHired...');
-    const simplyHiredJobs = await scrapeSimplyHired(jobRole);
-    allJobs.push(...simplyHiredJobs);
-    console.log(`Found ${simplyHiredJobs.length} jobs on SimplyHired`);
-  } catch (error) {
-    console.error('SimplyHired scraping failed:', error.message);
-  }
+  // Note: Web scraping disabled due to Railway environment limitations
+  // Puppeteer/Chrome not available in Railway container environment
+  console.log('Web scraping skipped - Chrome not available in Railway environment');
   
   console.log(`Total jobs found from all sources: ${allJobs.length}`);
   
@@ -762,19 +711,34 @@ async function fetchAdzunaJobs(jobRole) {
   try {
     console.log('Fetching jobs from Adzuna API...');
     
+    // Adzuna API endpoint for US jobs
     const baseUrl = 'https://api.adzuna.com/v1/api/jobs/us/search/1';
     const params = {
       app_id: ADZUNA_APP_ID,
       app_key: ADZUNA_APP_KEY,
       what: jobRole,
-      where: 'us',
+      where: 'United States',
       content_type: 'application/json',
       max_days_old: 7
     };
     
-    const response = await axios.get(baseUrl, { params });
+    console.log(`Adzuna API request: ${baseUrl}`);
+    console.log(`Adzuna params: what=${jobRole}, where=United States`);
+    console.log(`Using App ID: ${ADZUNA_APP_ID}`);
+    
+    const response = await axios.get(baseUrl, { 
+      params,
+      timeout: 30000,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'application/json'
+      }
+    });
+    
+    console.log(`Adzuna API response status: ${response.status}`);
     
     if (response.data && response.data.results) {
+      console.log(`Adzuna returned ${response.data.results.length} results`);
       for (const job of response.data.results) {
         const description = job.description || '';
         const analysis = analyzeJobDescription(description);
@@ -796,10 +760,14 @@ async function fetchAdzunaJobs(jobRole) {
         });
       }
       console.log(`Found ${jobs.length} jobs from Adzuna API`);
+    } else {
+      console.log('Adzuna API response has no results');
+      console.log('Response data:', JSON.stringify(response.data).substring(0, 500));
     }
   } catch (error) {
     console.error('Adzuna API error:', error.message);
-    console.error('Adzuna API error details:', error.response ? JSON.stringify(error.response.data) : 'No response');
+    console.error('Adzuna API error details:', error.response ? error.response.data : 'No response');
+    console.error('Adzuna API error status:', error.response ? error.response.status : 'No status');
   }
   
   return jobs;
