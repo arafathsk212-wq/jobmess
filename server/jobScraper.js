@@ -8,6 +8,12 @@ puppeteer.use(StealthPlugin());
 
 const rssParser = new RSSParser();
 
+// API Credentials from environment variables
+const ADZUNA_APP_ID = process.env.ADZUNA_APP_ID || '71f1e9f0';
+const ADZUNA_APP_KEY = process.env.ADZUNA_APP_KEY || '0c300347e587f06e9976d8d6ffe9fbb7';
+const LINKEDIN_CLIENT_ID = process.env.LINKEDIN_CLIENT_ID || '77hlemafrfeyk6';
+const LINKEDIN_CLIENT_SECRET = process.env.LINKEDIN_CLIENT_SECRET || 'your_linkedin_secret_here';
+
 const jobPortals = [
   { name: 'LinkedIn', url: 'https://www.linkedin.com/jobs/search/', type: 'linkedin' },
   { name: 'Indeed', url: 'https://www.indeed.com/jobs', type: 'indeed' },
@@ -598,7 +604,17 @@ async function searchJobs(jobRole) {
   
   const allJobs = [];
   
-  // Try RSS feeds first (most reliable)
+  // Try Adzuna API first (most reliable for real jobs)
+  try {
+    console.log('Fetching from Adzuna API...');
+    const adzunaJobs = await fetchAdzunaJobs(jobRole);
+    allJobs.push(...adzunaJobs);
+    console.log(`Found ${adzunaJobs.length} jobs from Adzuna API`);
+  } catch (error) {
+    console.error('Adzuna API error:', error.message);
+  }
+  
+  // Try RSS feeds as backup
   try {
     console.log('Fetching from RSS feeds...');
     const rssJobs = await fetchRSSJobs(jobRole);
@@ -608,7 +624,7 @@ async function searchJobs(jobRole) {
     console.error('RSS feed error:', error.message);
   }
   
-  // Try web scraping as backup
+  // Try web scraping as additional backup
   try {
     console.log('Scraping LinkedIn...');
     const linkedinJobs = await scrapeLinkedIn(jobRole);
@@ -735,6 +751,83 @@ async function fetchRSSJobs(jobRole) {
   }
   
   console.log(`Total RSS jobs found: ${jobs.length}`);
+  return jobs;
+}
+
+/**
+ * Fetch jobs from Adzuna API
+ */
+async function fetchAdzunaJobs(jobRole) {
+  const jobs = [];
+  try {
+    console.log('Fetching jobs from Adzuna API...');
+    
+    const baseUrl = 'https://api.adzuna.com/v1/api/jobs/us/search/1';
+    const params = {
+      app_id: ADZUNA_APP_ID,
+      app_key: ADZUNA_APP_KEY,
+      what: jobRole,
+      where: 'us',
+      content_type: 'application/json',
+      max_days_old: 7
+    };
+    
+    const response = await axios.get(baseUrl, { params });
+    
+    if (response.data && response.data.results) {
+      for (const job of response.data.results) {
+        const description = job.description || '';
+        const analysis = analyzeJobDescription(description);
+        
+        jobs.push({
+          title: job.title || 'Not Specified',
+          company: job.company?.display_name || 'Not Specified',
+          location: job.location?.display_name || 'Not Specified',
+          visaStatus: analysis.visaStatus,
+          employmentType: analysis.employmentType,
+          postedDate: job.created ? new Date(job.created).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          source: 'Adzuna',
+          email: extractEmail(description) || 'Not Provided',
+          phone: extractPhone(description) || 'Not Provided',
+          description: description.substring(0, 500),
+          link: job.redirect_url || job.url,
+          hasContactInfo: analysis.hasContactInfo,
+          skills: analysis.skills
+        });
+      }
+      console.log(`Found ${jobs.length} jobs from Adzuna API`);
+    }
+  } catch (error) {
+    console.error('Adzuna API error:', error.message);
+    console.error('Adzuna API error details:', error.response ? JSON.stringify(error.response.data) : 'No response');
+  }
+  
+  return jobs;
+}
+
+/**
+ * Fetch jobs from LinkedIn API
+ */
+async function fetchLinkedInJobs(jobRole) {
+  const jobs = [];
+  try {
+    console.log('Fetching jobs from LinkedIn API...');
+    
+    // LinkedIn API requires OAuth 2.0 flow
+    // For now, we'll use a simplified approach with the API
+    const baseUrl = 'https://api.linkedin.com/v2/jobPostings';
+    
+    // Note: LinkedIn API requires proper OAuth flow and specific permissions
+    // This is a placeholder for the actual implementation
+    // You'll need to implement proper OAuth flow for production use
+    
+    console.log('LinkedIn API requires OAuth 2.0 flow - skipping for now');
+    console.log('Consider using LinkedIn API with proper authentication');
+    
+  } catch (error) {
+    console.error('LinkedIn API error:', error.message);
+  }
+  
   return jobs;
 }
 
