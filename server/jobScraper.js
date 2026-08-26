@@ -920,6 +920,7 @@ async function fetchLinkedInJobs(jobRole) {
     
     if (response.data && Array.isArray(response.data)) {
       console.log(`Bright Data returned ${response.data.length} LinkedIn job records`);
+      console.log('Bright Data response sample:', JSON.stringify(response.data[0]).substring(0, 1000));
       
       for (const jobData of response.data) {
         try {
@@ -931,10 +932,12 @@ async function fetchLinkedInJobs(jobRole) {
           const description = jobData.description || jobData.job_description || '';
           const link = jobData.url || jobData.job_url || jobData.link || '';
           
+          console.log(`Processing LinkedIn job: ${title} at ${company}`);
+          
           // AI analyze the job description for C2C and visa information
           const analysis = analyzeJobDescription(description);
           
-          jobs.push({
+          const job = {
             title: title,
             company: company,
             location: location,
@@ -948,9 +951,13 @@ async function fetchLinkedInJobs(jobRole) {
             link: link,
             hasContactInfo: analysis.hasContactInfo,
             skills: analysis.skills
-          });
+          };
+          
+          console.log(`Job object created:`, JSON.stringify(job).substring(0, 500));
+          jobs.push(job);
         } catch (jobError) {
           console.error('Error parsing Bright Data job record:', jobError.message);
+          console.error('Job data that failed:', JSON.stringify(jobData).substring(0, 500));
         }
       }
       
