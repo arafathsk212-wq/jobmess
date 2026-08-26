@@ -567,10 +567,11 @@ function displayJobResults(jobs) {
         <p><strong>Employment Type:</strong> ${escapeHtml(job.employmentType)}</p>
         <p><strong>Posted:</strong> ${escapeHtml(job.postedDate)}</p>
         <p><strong>Source:</strong> ${escapeHtml(job.source)}</p>
-        <p><strong>Email:</strong> ${job.email && job.email !== 'Not Provided' ? `<a href="mailto:${escapeHtml(job.email)}">${escapeHtml(job.email)}</a>` : 'Not Provided'}</p>
-        <p><strong>Phone:</strong> ${job.phone && job.phone !== 'Not Provided' ? `<a href="tel:${escapeHtml(job.phone)}">${escapeHtml(job.phone)}</a>` : 'Not Provided'}</p>
+        ${job.email && job.email !== 'Not Provided' ? `<p><strong>Email:</strong> <a href="mailto:${escapeHtml(job.email)}">${escapeHtml(job.email)}</a></p>` : ''}
+        ${job.phone && job.phone !== 'Not Provided' ? `<p><strong>Phone:</strong> <a href="tel:${escapeHtml(job.phone)}">${escapeHtml(job.phone)}</a></p>` : ''}
         ${job.skills && job.skills.length > 0 ? `<p><strong>Skills:</strong> ${escapeHtml(job.skills.join(', '))}</p>` : ''}
         <p><strong>Description:</strong> ${escapeHtml(job.description)}</p>
+        ${job.link ? `<div class="job-actions"><a href="${escapeHtml(job.link)}" target="_blank" class="apply-btn">Apply Now →</a></div>` : ''}
       </div>
     </div>
   `).join('');
