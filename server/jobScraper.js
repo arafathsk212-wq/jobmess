@@ -901,7 +901,8 @@ async function fetchLinkedInJobs(jobRole) {
     const apiUrl = `https://api.brightdata.com/datasets/v3/scrape`;
     
     // Construct LinkedIn job search URL
-    const linkedinSearchUrl = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(jobRole)}&location=United%20States&f_TPR=r86400`; // Past 24 hours
+    // Try different URL formats that might work better with Bright Data
+    const linkedinSearchUrl = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(jobRole)}&location=United%20States&f_JT=F&f_E=1`;
     
     console.log(`Bright Data API request for LinkedIn jobs: ${jobRole}`);
     console.log(`LinkedIn search URL: ${linkedinSearchUrl}`);
@@ -1015,6 +1016,14 @@ function processBrightDataJobs(data, jobs) {
   
   if (jobDataArray.length > 0) {
     console.log('Bright Data response sample:', JSON.stringify(jobDataArray[0]).substring(0, 1000));
+    
+    // Check if the response contains errors
+    if (jobDataArray[0].error) {
+      console.log('Bright Data returned error:', jobDataArray[0].error);
+      console.log('Error code:', jobDataArray[0].error_code);
+      console.log('LinkedIn scraping failed - URL might require authentication or is invalid');
+      return jobs; // Return empty array if error
+    }
     
     for (const jobData of jobDataArray) {
       try {
