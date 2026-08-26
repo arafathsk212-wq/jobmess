@@ -630,10 +630,11 @@ async function searchJobs(jobRole) {
   
   console.log(`Total jobs found from all sources: ${allJobs.length}`);
   
-  // Use realistic sample jobs as fallback if no real jobs found
+  // Only use sample data as last resort if absolutely no jobs found
   if (allJobs.length === 0) {
-    console.log('No real jobs found from any source, using realistic sample data');
+    console.log('No real jobs found from any source, using realistic sample data as fallback');
     allJobs.push(...generateRealisticSampleJobs(jobRole));
+    console.log('Note: These are sample jobs. To get real jobs, ensure Adzuna API credentials are correctly configured in Railway environment variables.');
   }
   
   console.log(`Total jobs to return: ${allJobs.length}`);
@@ -721,7 +722,8 @@ async function fetchAdzunaJobs(jobRole) {
       app_key: ADZUNA_APP_KEY,
       what: jobRole,
       where: 'us',
-      content_type: 'application/json'
+      content_type: 'application/json',
+      max_days_old: 30
     };
     
     console.log(`Adzuna API request: ${baseUrl}`);
@@ -774,6 +776,48 @@ async function fetchAdzunaJobs(jobRole) {
     console.error('Adzuna API error details:', error.response ? error.response.data : 'No response');
     console.error('Adzuna API error status:', error.response ? error.response.status : 'No status');
     console.error('Adzuna API error headers:', error.response ? error.response.headers : 'No headers');
+    
+    // Try alternative endpoint format
+    try {
+      console.log('Trying alternative Adzuna endpoint format...');
+      const altUrl = `https://api.adzuna.com/v1/api/jobs/us/search/1?app_id=${ADZUNA_APP_ID}&app_key=${ADZUNA_APP_KEY}&what=${encodeURIComponent(jobRole)}&where=us&content-type=application/json`;
+      
+      const altResponse = await axios.get(altUrl, {
+        timeout: 30000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+      });
+      
+      console.log(`Alternative Adzuna response status: ${altResponse.status}`);
+      
+      if (altResponse.data && altResponse.data.results) {
+        console.log(`Alternative Adzuna returned ${altResponse.data.results.length} results`);
+        for (const job of altResponse.data.results) {
+          const description = job.description || '';
+          const analysis = analyzeJobDescription(description);
+          
+          jobs.push({
+            title: job.title || 'Not Specified',
+            company: job.company?.display_name || 'Not Specified',
+            location: job.location?.display_name || 'Not Specified',
+            visaStatus: analysis.visaStatus,
+            employmentType: analysis.employmentType,
+            postedDate: job.created ? new Date(job.created).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            source: 'Adzuna',
+            email: extractEmail(description) || 'Not Provided',
+            phone: extractPhone(description) || 'Not Provided',
+            description: description.substring(0, 500),
+            link: job.redirect_url || job.url,
+            hasContactInfo: analysis.hasContactInfo,
+            skills: analysis.skills
+          });
+        }
+        console.log(`Found ${jobs.length} jobs from alternative Adzuna endpoint`);
+      }
+    } catch (altError) {
+      console.error('Alternative Adzuna endpoint also failed:', altError.message);
+    }
   }
   
   return jobs;
