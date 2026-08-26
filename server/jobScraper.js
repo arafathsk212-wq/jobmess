@@ -16,7 +16,7 @@ const LINKEDIN_CLIENT_SECRET = process.env.LINKEDIN_CLIENT_SECRET || 'your_linke
 
 // Bright Data API credentials
 const BRIGHT_DATA_API_KEY = process.env.BRIGHT_DATA_API_KEY || '7d9f273b-bda9-498a-8165-fec860f4dc6e';
-const BRIGHT_DATA_DATASET_ID = process.env.BRIGHT_DATA_DATASET_ID || 'gd_lpfll7v5hcqtkxl6l';
+const BRIGHT_DATA_DATASET_ID = process.env.BRIGHT_DATA_DATASET_ID || 'gd_lyy3tktm25m4avu764'; // LinkedIn posts dataset
 
 const jobPortals = [
   { name: 'LinkedIn', url: 'https://www.linkedin.com/jobs/search/', type: 'linkedin' },
@@ -894,17 +894,16 @@ function generateRealisticSampleJobs(jobRole) {
 async function fetchLinkedInJobs(jobRole) {
   const jobs = [];
   try {
-    console.log('Fetching LinkedIn jobs via Bright Data API...');
+    console.log('Fetching LinkedIn posts via Bright Data API...');
     
-    // Use Bright Data API to scrape LinkedIn job listings
-    // Try async API which might return actual job data
+    // Use Bright Data API to scrape LinkedIn posts about jobs
     const apiUrl = `https://api.brightdata.com/datasets/v3/scrape`;
     
-    // Construct LinkedIn job search URL
-    // Try different URL formats that might work better with Bright Data
-    const linkedinSearchUrl = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(jobRole)}&location=United%20States&f_JT=F&f_E=1`;
+    // Construct LinkedIn content search URL for posts about jobs
+    // Using LinkedIn's content search to find posts about the job role
+    const linkedinSearchUrl = `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(jobRole + ' c2c OR corp to corp OR 1099 OR contract job')}&origin=FACETED_SEARCH`;
     
-    console.log(`Bright Data API request for LinkedIn jobs: ${jobRole}`);
+    console.log(`Bright Data API request for LinkedIn posts: ${jobRole}`);
     console.log(`LinkedIn search URL: ${linkedinSearchUrl}`);
     console.log(`Using dataset ID: ${BRIGHT_DATA_DATASET_ID}`);
     
@@ -964,7 +963,7 @@ async function fetchLinkedInJobs(jobRole) {
             );
             
             console.log(`Got ${dataResponse.data.length} records from snapshot`);
-            processBrightDataJobs(dataResponse.data, jobs);
+            processLinkedInPosts(dataResponse.data, jobs, jobRole);
             break;
           }
           
@@ -980,10 +979,10 @@ async function fetchLinkedInJobs(jobRole) {
       }
     } else {
       // Try to process immediate response
-      processBrightDataJobs(response.data, jobs);
+      processLinkedInPosts(response.data, jobs, jobRole);
     }
     
-    console.log(`Successfully parsed ${jobs.length} LinkedIn jobs from Bright Data`);
+    console.log(`Successfully parsed ${jobs.length} LinkedIn posts from Bright Data`);
   } catch (error) {
     console.error('Bright Data API error:', error.message);
     console.error('Bright Data error details:', error.response ? error.response.data : 'No response');
@@ -993,75 +992,84 @@ async function fetchLinkedInJobs(jobRole) {
   return jobs;
 }
 
-function processBrightDataJobs(data, jobs) {
-  let jobDataArray = [];
+function processLinkedInPosts(data, jobs, jobRole) {
+  let postsArray = [];
   
   if (Array.isArray(data)) {
-    jobDataArray = data;
+    postsArray = data;
   } else if (data && data.results && Array.isArray(data.results)) {
-    jobDataArray = data.results;
+    postsArray = data.results;
   } else if (data && data.data && Array.isArray(data.data)) {
-    jobDataArray = data.data;
+    postsArray = data.data;
   } else if (data && typeof data === 'object') {
     for (const key of Object.keys(data)) {
       if (Array.isArray(data[key])) {
-        jobDataArray = data[key];
-        console.log(`Found job data in key: ${key}`);
+        postsArray = data[key];
+        console.log(`Found post data in key: ${key}`);
         break;
       }
     }
   }
   
-  console.log(`Extracted ${jobDataArray.length} job records from Bright Data response`);
+  console.log(`Extracted ${postsArray.length} post records from Bright Data response`);
   
-  if (jobDataArray.length > 0) {
-    console.log('Bright Data response sample:', JSON.stringify(jobDataArray[0]).substring(0, 1000));
+  if (postsArray.length > 0) {
+    console.log('Bright Data response sample:', JSON.stringify(postsArray[0]).substring(0, 1000));
     
     // Check if the response contains errors
-    if (jobDataArray[0].error) {
-      console.log('Bright Data returned error:', jobDataArray[0].error);
-      console.log('Error code:', jobDataArray[0].error_code);
+    if (postsArray[0].error) {
+      console.log('Bright Data returned error:', postsArray[0].error);
+      console.log('Error code:', postsArray[0].error_code);
       console.log('LinkedIn scraping failed - URL might require authentication or is invalid');
       return jobs; // Return empty array if error
     }
     
-    for (const jobData of jobDataArray) {
+    for (const postData of postsArray) {
       try {
-        const title = jobData.title || jobData.job_title || jobData.jobTitle || jobData.position || 'Not Specified';
-        const company = jobData.company_name || jobData.company || jobData.companyName || jobData.employer || 'Not Specified';
-        const location = jobData.location || jobData.job_location || jobData.jobLocation || jobData.place || 'Not Specified';
-        const description = jobData.description || jobData.job_description || jobData.jobDescription || jobData.details || '';
-        const link = jobData.url || jobData.job_url || jobData.jobUrl || jobData.link || jobData.applyUrl || '';
+        // Extract post information from Bright Data response
+        // LinkedIn posts have different structure than job listings
+        const postText = postData.text || postData.content || postData.description || postData.post_text || '';
+        const author = postData.author || postData.author_name || postData.poster || 'LinkedIn User';
+        const title = postData.title || postData.headline || `${jobRole} - C2C Opportunity`;
+        const company = author;
+        const location = 'Various/Remote';
+        const link = postData.url || postData.post_url || postData.link || '';
         
-        console.log(`Processing LinkedIn job: ${title} at ${company}`);
+        console.log(`Processing LinkedIn post by: ${author}`);
         
-        const analysis = analyzeJobDescription(description);
+        // AI analyze the post content for C2C and visa information
+        const analysis = analyzeJobDescription(postText);
         
-        const job = {
-          title: title,
-          company: company,
-          location: location,
-          visaStatus: analysis.visaStatus,
-          employmentType: analysis.employmentType,
-          postedDate: jobData.posted_date || jobData.date || jobData.postedAt || new Date().toISOString().split('T')[0],
-          source: 'LinkedIn (Bright Data)',
-          email: extractEmail(description) || 'Not Provided',
-          phone: extractPhone(description) || 'Not Provided',
-          description: description.substring(0, 500),
-          link: link,
-          hasContactInfo: analysis.hasContactInfo,
-          skills: analysis.skills
-        };
-        
-        console.log(`Job object created:`, JSON.stringify(job).substring(0, 500));
-        jobs.push(job);
-      } catch (jobError) {
-        console.error('Error parsing Bright Data job record:', jobError.message);
-        console.error('Job data that failed:', JSON.stringify(jobData).substring(0, 500));
+        // Only include posts that mention C2C or related keywords
+        if (analysis.employmentType === 'C2C' || analysis.employmentType === 'Contract' || postText.toLowerCase().includes('c2c') || postText.toLowerCase().includes('1099')) {
+          const job = {
+            title: title,
+            company: company,
+            location: location,
+            visaStatus: analysis.visaStatus,
+            employmentType: 'C2C',
+            postedDate: postData.posted_date || postData.date || postData.created_at || new Date().toISOString().split('T')[0],
+            source: 'LinkedIn Posts (Bright Data)',
+            email: extractEmail(postText) || 'Not Provided',
+            phone: extractPhone(postText) || 'Not Provided',
+            description: postText.substring(0, 500),
+            link: link,
+            hasContactInfo: analysis.hasContactInfo,
+            skills: analysis.skills
+          };
+          
+          console.log(`Job object created from post:`, JSON.stringify(job).substring(0, 500));
+          jobs.push(job);
+        } else {
+          console.log('Post skipped - no C2C/contract mentions found');
+        }
+      } catch (postError) {
+        console.error('Error parsing LinkedIn post:', postError.message);
+        console.error('Post data that failed:', JSON.stringify(postData).substring(0, 500));
       }
     }
   } else {
-    console.log('Bright Data API returned no job data');
+    console.log('Bright Data API returned no post data');
     console.log('Full response:', JSON.stringify(data).substring(0, 2000));
   }
 }
