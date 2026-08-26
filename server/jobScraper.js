@@ -614,6 +614,16 @@ async function searchJobs(jobRole) {
     console.error('Adzuna API error:', error.message);
   }
   
+  // Try LinkedIn API
+  try {
+    console.log('Fetching from LinkedIn API...');
+    const linkedinJobs = await fetchLinkedInJobs(jobRole);
+    allJobs.push(...linkedinJobs);
+    console.log(`Found ${linkedinJobs.length} jobs from LinkedIn API`);
+  } catch (error) {
+    console.error('LinkedIn API error:', error.message);
+  }
+  
   // Try RSS feeds as backup
   try {
     console.log('Fetching from RSS feeds...');
@@ -634,7 +644,7 @@ async function searchJobs(jobRole) {
   if (allJobs.length === 0) {
     console.log('No real jobs found from any source, using realistic sample data as fallback');
     allJobs.push(...generateRealisticSampleJobs(jobRole));
-    console.log('Note: These are sample jobs. To get real jobs, ensure Adzuna API credentials are correctly configured in Railway environment variables.');
+    console.log('Note: These are sample jobs. To get real jobs, ensure API credentials are correctly configured in Railway environment variables.');
   }
   
   console.log(`Total jobs to return: ${allJobs.length}`);
@@ -882,19 +892,86 @@ async function fetchLinkedInJobs(jobRole) {
   try {
     console.log('Fetching jobs from LinkedIn API...');
     
-    // LinkedIn API requires OAuth 2.0 flow
-    // For now, we'll use a simplified approach with the API
-    const baseUrl = 'https://api.linkedin.com/v2/jobPostings';
+    // LinkedIn API requires OAuth 2.0 access token
+    // First, get access token using client credentials
+    const tokenUrl = 'https://www.linkedin.com/oauth/v2/accessToken';
+    const tokenParams = {
+      grant_type: 'client_credentials',
+      client_id: LINKEDIN_CLIENT_ID,
+      client_secret: LINKEDIN_CLIENT_SECRET
+    };
     
-    // Note: LinkedIn API requires proper OAuth flow and specific permissions
-    // This is a placeholder for the actual implementation
-    // You'll need to implement proper OAuth flow for production use
+    console.log('Attempting to get LinkedIn access token...');
     
-    console.log('LinkedIn API requires OAuth 2.0 flow - skipping for now');
-    console.log('Consider using LinkedIn API with proper authentication');
+    const tokenResponse = await axios.post(tokenUrl, null, { params: tokenParams });
     
+    if (tokenResponse.data && tokenResponse.data.access_token) {
+      const accessToken = tokenResponse.data.access_token;
+      console.log('LinkedIn access token obtained successfully');
+      
+      // Use the access token to fetch jobs
+      // Note: LinkedIn's job search API is limited and requires specific permissions
+      // This is a simplified implementation
+      const jobsUrl = 'https://api.linkedin.com/v2/jobPostings';
+      
+      const jobsResponse = await axios.get(jobsUrl, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        params: {
+          keywords: jobRole,
+          location: 'us'
+        }
+      });
+      
+      if (jobsResponse.data && jobsResponse.data.elements) {
+        console.log(`LinkedIn returned ${jobsResponse.data.elements.length} jobs`);
+        
+        for (const job of jobsResponse.data.elements) {
+          const description = job.description?.text || '';
+          const analysis = analyzeJobDescription(description);
+          
+          jobs.push({
+            title: job.title || 'Not Specified',
+            company: job.companyDetails?.companyName?.localizedName || 'Not Specified',
+            location: job.locationDetails?.country || 'Not Specified',
+            visaStatus: analysis.visaStatus,
+            employmentType: analysis.employmentType,
+            postedDate: job.postedAt ? new Date(job.postedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            source: 'LinkedIn',
+            email: extractEmail(description) || 'Not Provided',
+            phone: extractPhone(description) || 'Not Provided',
+            description: description.substring(0, 500),
+            link: job.applyUrl || job.url,
+            hasContactInfo: analysis.hasContactInfo,
+            skills: analysis.skills
+          });
+        }
+        console.log(`Found ${jobs.length} jobs from LinkedIn API`);
+      } else {
+        console.log('LinkedIn API returned no job elements');
+        console.log('LinkedIn response data:', JSON.stringify(jobsResponse.data).substring(0, 500));
+      }
+    } else {
+      console.log('Failed to obtain LinkedIn access token');
+      console.log('Token response:', JSON.stringify(tokenResponse.data).substring(0, 500));
+    }
   } catch (error) {
     console.error('LinkedIn API error:', error.message);
+    console.error('LinkedIn API error details:', error.response ? error.response.data : 'No response');
+    console.error('LinkedIn API error status:', error.response ? error.response.status : 'No status');
+    
+    // LinkedIn API often requires specific permissions and OAuth flow
+    // Fallback to scraping if API fails
+    console.log('LinkedIn API failed, attempting web scraping as fallback...');
+    try {
+      const scrapedJobs = await scrapeLinkedIn(jobRole);
+      jobs.push(...scrapedJobs);
+      console.log(`Found ${scrapedJobs.length} jobs from LinkedIn scraping fallback`);
+    } catch (scrapeError) {
+      console.error('LinkedIn scraping also failed:', scrapeError.message);
+    }
   }
   
   return jobs;
