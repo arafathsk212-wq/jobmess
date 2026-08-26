@@ -890,20 +890,19 @@ function generateRealisticSampleJobs(jobRole) {
 async function fetchLinkedInJobs(jobRole) {
   const jobs = [];
   try {
-    console.log('Fetching jobs from LinkedIn...');
+    console.log('Fetching LinkedIn posts about jobs...');
     
-    // Try using LinkedIn's public job search page with HTTP requests
-    // This targets actual job postings
-    const searchUrl = 'https://www.linkedin.com/jobs/search/';
+    // Search LinkedIn posts (not job postings) for job-related content
+    // This targets user posts about jobs, not company job listings
+    const searchUrl = 'https://www.linkedin.com/search/results/content/';
     const params = {
-      keywords: jobRole,
-      location: 'United States',
-      f_JT: 'F', // Full-time jobs
-      f_E: '1', // Entry level
-      f_WT: '2' // Remote
+      keywords: `${jobRole} c2c OR corp to corp OR 1099 OR contract`,
+      filters: 'List(%28network%3A%27F%27%29)',
+      count: 25,
+      start: 0
     };
     
-    console.log(`Attempting LinkedIn job search for: ${jobRole}`);
+    console.log(`Searching LinkedIn posts for: ${jobRole} with C2C keywords`);
     
     const response = await axios.get(searchUrl, {
       params,
@@ -914,71 +913,74 @@ async function fetchLinkedInJobs(jobRole) {
         'Accept-Language': 'en-US,en;q=0.9',
         'Accept-Encoding': 'gzip, deflate, br',
         'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Referer': 'https://www.linkedin.com/jobs/'
+        'Referer': 'https://www.linkedin.com/feed/',
+        'Cookie': 'li_at=' // Would need actual LinkedIn session cookie for this to work
       }
     });
     
-    console.log(`LinkedIn response status: ${response.status}`);
-    console.log(`LinkedIn response length: ${response.data.length}`);
+    console.log(`LinkedIn posts response status: ${response.status}`);
+    console.log(`LinkedIn posts response length: ${response.data.length}`);
     
     if (response.data && response.data.length > 0) {
-      // Parse the HTML response to extract job information
       const $ = cheerio.load(response.data);
       
-      // Look for actual job posting cards with specific LinkedIn selectors
-      const jobCards = $('.job-card-container, .jobs-search__results-list li, [class*="job-card"], [class*="JobCard"]');
-      console.log(`Found ${jobCards.length} job cards on LinkedIn`);
+      // Look for LinkedIn post cards
+      const postCards = $('.feed-shared-update-v2, .occludable-update, [class*="feed-shared"], [class*="post"]');
+      console.log(`Found ${postCards.length} LinkedIn posts`);
       
-      jobCards.each((index, card) => {
+      const now = new Date();
+      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      
+      postCards.each((index, card) => {
         try {
-          // Extract job title - look for specific LinkedIn job title selectors
-          const titleElement = $(card).find('.job-title, .job-card__title, h3, a[class*="title"], [class*="job-title"]');
-          const title = titleElement.first().text().trim();
+          // Extract post content/text
+          const postText = $(card).find('.feed-shared-text, .feed-shared-text__text, [class*="text"]').first().text().trim();
           
-          // Extract company name
-          const companyElement = $(card).find('.company-name, .job-card__company-name, [class*="company"], [class*="Company"]');
-          const company = companyElement.first().text().trim();
+          // Extract author name
+          const author = $(card).find('.feed-shared-actor__name, [class*="actor__name"]').first().text().trim();
           
-          // Extract location
-          const locationElement = $(card).find('.job-location, .job-card__location, [class*="location"], [class*="Location"]');
-          const location = locationElement.first().text().trim();
+          // Extract post time
+          const timeText = $(card).find('.feed-shared-actor__sub-description, [class*="time"]').first().text().trim();
           
-          // Extract job link
+          // Extract post link
           const linkElement = $(card).find('a').first();
           const link = linkElement.attr('href') || '';
           
-          // Only add if we have a valid job title
-          if (title && title.length > 3 && title !== 'Not Specified') {
-            const description = `Job posting on LinkedIn for ${title} at ${company}`;
-            const analysis = analyzeJobDescription(description);
-            
+          // AI analyze the post line by line for C2C mentions
+          const analysis = analyzeJobDescription(postText);
+          
+          // Only include posts that mention C2C or related keywords
+          if (postText && analysis.employmentType === 'C2C' || analysis.employmentType === 'Contract') {
             jobs.push({
-              title: title,
-              company: company || 'Company on LinkedIn',
-              location: location || 'United States',
+              title: `${jobRole} - C2C Opportunity`,
+              company: author || 'LinkedIn User',
+              location: 'Remote/Various',
               visaStatus: analysis.visaStatus,
-              employmentType: 'Full-time',
-              postedDate: new Date().toISOString().split('T')[0],
-              source: 'LinkedIn',
-              email: 'Not Provided',
-              phone: 'Not Provided',
-              description: 'Click to view full job description on LinkedIn',
+              employmentType: 'C2C',
+              postedDate: new Date().toISOString().split('T')[0], // LinkedIn posts don't always have exact dates
+              source: 'LinkedIn Posts',
+              email: extractEmail(postText) || 'Not Provided',
+              phone: extractPhone(postText) || 'Not Provided',
+              description: postText.substring(0, 500) || 'Click to view full post on LinkedIn',
               link: link.startsWith('http') ? link : `https://www.linkedin.com${link}`,
-              hasContactInfo: false,
+              hasContactInfo: analysis.hasContactInfo,
               skills: analysis.skills
             });
           }
         } catch (cardError) {
-          console.error('Error parsing LinkedIn job card:', cardError.message);
+          console.error('Error parsing LinkedIn post:', cardError.message);
         }
       });
       
-      console.log(`Successfully parsed ${jobs.length} LinkedIn job postings`);
+      console.log(`Found ${jobs.length} C2C posts from LinkedIn`);
     }
   } catch (error) {
-    console.error('LinkedIn job search error:', error.message);
+    console.error('LinkedIn posts search error:', error.message);
     console.error('LinkedIn error details:', error.response ? error.response.status : 'No response');
+    
+    // LinkedIn requires authentication for post search
+    // Try alternative approach using LinkedIn's public feed
+    console.log('LinkedIn post search requires authentication. This feature needs LinkedIn login session.');
   }
   
   return jobs;
