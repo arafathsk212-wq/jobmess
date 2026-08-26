@@ -557,7 +557,21 @@ async function clearJobs() {
 }
 
 function displayJobResults(jobs) {
-  elements.jobResultsContainer.innerHTML = jobs.map(job => `
+  elements.jobResultsContainer.innerHTML = jobs.map(job => {
+    // Ensure job has a link - add fallbacks
+    let jobLink = job.link;
+    if (!jobLink || jobLink === '') {
+      // Fallback to search URL based on job title and company
+      if (job.source === 'LinkedIn (Bright Data)' || job.source === 'LinkedIn') {
+        jobLink = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(job.title + ' ' + job.company)}`;
+      } else if (job.source === 'Adzuna') {
+        jobLink = `https://www.adzuna.com/search?q=${encodeURIComponent(job.title + ' ' + job.company)}`;
+      } else {
+        jobLink = `https://www.google.com/search?q=${encodeURIComponent(job.title + ' ' + job.company + ' job')}`;
+      }
+    }
+    
+    return `
     <div class="job-card">
       <h3>${escapeHtml(job.title)}</h3>
       <div class="job-details">
@@ -571,10 +585,12 @@ function displayJobResults(jobs) {
         ${job.phone && job.phone !== 'Not Provided' ? `<p><strong>Phone:</strong> <a href="tel:${escapeHtml(job.phone)}">${escapeHtml(job.phone)}</a></p>` : ''}
         ${job.skills && job.skills.length > 0 ? `<p><strong>Skills:</strong> ${escapeHtml(job.skills.join(', '))}</p>` : ''}
         <p><strong>Description:</strong> ${escapeHtml(job.description)}</p>
-        ${job.link ? `<div class="job-actions"><a href="${escapeHtml(job.link)}" target="_blank" class="apply-btn">Apply Now →</a></div>` : ''}
+        <div class="job-actions">
+          <a href="${escapeHtml(jobLink)}" target="_blank" class="apply-btn">Apply Now →</a>
+        </div>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 // Email functions
